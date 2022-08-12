@@ -12,6 +12,12 @@ group = "beyond"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
+allOpen {
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.MappedSuperclass")
+	annotation("javax.persistence.Embeddable")
+}
+
 repositories {
 	mavenCentral()
 }
