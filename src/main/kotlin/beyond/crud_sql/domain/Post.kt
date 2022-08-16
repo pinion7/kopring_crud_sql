@@ -8,26 +8,23 @@ import javax.persistence.*
 
 @Entity
 @Table(name = "Posts")
-class Post(title: String, content: String, user: User) : BaseTimeEntity() {
+class Post(
+    @Column
+    val title: String,
+
+    @Column
+    val content: String,
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    val user: User,
 
     @Id
     @GeneratedValue(generator = "uuid-gen")
     @GenericGenerator(name = "uuid-gen", strategy = "uuid2")
     @Column(nullable = false, updatable = false)
-    var id: UUID? = null
-        protected set;
+    val id: UUID? = null
+) : BaseTimeEntity() {
 
-    @Column(nullable = false)
-    var title: String = title
-        protected set;
-
-    @Column(nullable = false)
-    var content: String = content
-        protected set;
-
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    var user: User = user
-        protected set;
 }

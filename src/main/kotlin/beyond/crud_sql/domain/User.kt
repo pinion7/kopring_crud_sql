@@ -14,21 +14,31 @@ class User(email: String, password: String, nickname: String) : BaseTimeEntity()
     @GenericGenerator(name = "uuid-gen", strategy = "uuid2")
     @Column(nullable = false, updatable = false)
     var id: UUID? = null
-        protected set;
+        private set;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     var email: String = email
-        protected set;
+        private set;
 
     @Column(nullable = false)
     var password: String = password
-        protected set;
+        private set;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     var nickname: String = nickname
-        protected set;
+        private set;
 
     @OneToMany(mappedBy = "user")
     var posts: MutableList<Post> = mutableListOf()
-        protected set;
+        private set;
+
+    fun changeNickname(nickname: String) {
+        this.nickname = nickname
+    }
+
+    override fun toString(): String {
+        return "User(id=$id, email='$email', password='$password', nickname='$nickname', posts=$posts)"
+    }
+
+
 }
