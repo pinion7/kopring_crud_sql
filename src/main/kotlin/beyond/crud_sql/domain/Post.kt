@@ -21,7 +21,7 @@ class Post(
     val user: User,
 
     @Id
-    @GeneratedValue(generator = "uuid-gen")
+    @GeneratedValue(generator = "uuid-gen", strategy = GenerationType.IDENTITY)
     @GenericGenerator(name = "uuid-gen", strategy = "uuid2")
     @Column(nullable = false, updatable = false)
     val id: UUID? = null

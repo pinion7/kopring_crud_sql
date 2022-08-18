@@ -4,5 +4,6 @@ class NotFoundErrorResult(
     error: String,
     statusCode: Int,
     message: String?,
+    cause: String?,
     override val validation: String? = null
-) : ErrorResult(error, statusCode, message)
+) : ErrorResult(error, statusCode, message, cause)

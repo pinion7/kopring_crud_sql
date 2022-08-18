@@ -1,10 +1,10 @@
-package beyond.crud_sql.dto
+package beyond.crud_sql.dto.request
 
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 
-data class CreateUserDto(
+data class CreateUserRequestDto(
     @NotEmpty
     @NotNull
     @Email

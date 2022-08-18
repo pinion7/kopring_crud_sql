@@ -1,35 +1,34 @@
 package beyond.crud_sql.controller
 
-import beyond.crud_sql.common.result.ErrorResult
-import beyond.crud_sql.common.result.InternalServerErrorResult
-import beyond.crud_sql.dto.CreateUserDto
-import beyond.crud_sql.dto.CreateUserResultDto
+import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
+import beyond.crud_sql.dto.result.CreateUserResultDto
+import beyond.crud_sql.dto.result.GetUserResultDto
 import beyond.crud_sql.service.UserService
-import org.postgresql.util.PSQLException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.http.HttpStatus
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.client.HttpServerErrorException.InternalServerError
-import org.springframework.web.context.request.WebRequest
-import java.sql.SQLException
-import java.util.*
+import java.util.UUID
+import javax.validation.constraints.Min
 
 @RestController
 @RequestMapping("/users")
-class UserController(val userService: UserService) {
+class UserController(
+    private val userService: UserService,
+) {
+
+    private val log = LoggerFactory.getLogger(UserService::class.java)
 
     @PostMapping
-    fun createUser(@RequestBody @Validated request: CreateUserDto): ResponseEntity<Any> {
+    fun createUser(@RequestBody @Validated request: CreateUserRequestDto): ResponseEntity<ResponseDto<CreateUserResultDto>> {
         val results = userService.createUser(request)
         return ResponseEntity.status(201).body(results)
     }
 
-//    @ExceptionHandler(SQLException::class)
-//    protected fun handleSQLException(e: PSQLException) : ResponseEntity<ErrorResult> {
-//        val errorResult: ErrorResult = InternalServerErrorResult("Internal Server Error", 500, "이메일 혹은 닉네임 중복입니다.")
-//        return ResponseEntity<ErrorResult>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR)
-//    }
+    @GetMapping("/{userId}")
+    fun getUser(@PathVariable @Min(1) userId: UUID): ResponseEntity<ResponseDto<GetUserResultDto>> {
+        val results = userService.getUser(userId)
+        return ResponseEntity.status(200).body(results)
+    }
 }

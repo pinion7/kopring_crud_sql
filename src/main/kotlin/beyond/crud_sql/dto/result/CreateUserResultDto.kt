@@ -1,4 +1,4 @@
-package beyond.crud_sql.dto
+package beyond.crud_sql.dto.result
 
 import java.util.UUID
 

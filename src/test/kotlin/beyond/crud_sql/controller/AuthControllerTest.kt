@@ -1,7 +1,7 @@
 package beyond.crud_sql.controller
 
 import beyond.crud_sql.domain.User
-import beyond.crud_sql.dto.request.CreateUserRequestDto
+import beyond.crud_sql.dto.request.LoginRequestDto
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,63 +20,87 @@ import javax.persistence.EntityManager
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class UserControllerTest @Autowired constructor(
+class AuthControllerTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val em: EntityManager,
-){
-
-    lateinit var user1: User
+) {
+    lateinit var user: User
 
     @BeforeEach
     fun setUp() {
-        user1 = User("mouse1@naver.com", "1234", "실험쥐1")
-        em.persist(user1)
+        user = User("test@naver.com", "1234", "테스트유저")
+        em.persist(user)
         em.flush()
     }
 
     @Test
-    fun createUserTest_success() {
+    fun login_success() {
         // given
-        val request = CreateUserRequestDto("mouse2@naver.com", "1234", "실험쥐2")
+        val request = LoginRequestDto("test@naver.com", "1234")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then
         mockMvc.perform(
-            post("/users")
+            post("/auth/login")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
         ).andExpect(
-            status().isCreated
+            status().isOk
         ).andExpect(
-            jsonPath("\$.statusCode").value(201)
+            jsonPath("\$.results.email").value(user.email)
         ).andExpect(
-            jsonPath("\$.message").value("유저 등록에 성공하였습니다.")
+            jsonPath("\$.results.nickname").value(user.nickname)
+        ).andExpect(
+            jsonPath("\$.statusCode").value(200)
+        ).andExpect(
+            jsonPath("\$.message").value("로그인에 성공하였습니다.")
         ).andDo(print())
     }
 
     @Test
-    fun createUserTest_fail() {
+    fun login_fail1() {
         // given
-        val request = CreateUserRequestDto(user1.email, user1.password, user1.nickname)
+        val request = LoginRequestDto("wrong@naver.com", "1234")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then
         mockMvc.perform(
-            post("/users")
+            post("/auth/login")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
         ).andExpect(
-            status().isConflict
+            status().isNotFound
         ).andExpect(
-            jsonPath("\$.error").value("Conflict")
+            jsonPath("\$.error").value("Not Found")
         ).andExpect(
-            jsonPath("\$.statusCode").value(409)
+            jsonPath("\$.statusCode").value(404)
         ).andExpect(
-            jsonPath("\$.message").value("이메일 혹은 닉네임 중복입니다.")
+            jsonPath("\$.message").value("이메일이 일치하지 않습니다.")
+        ).andDo(print())
+    }
+
+    @Test
+    fun login_fail2() {
+        // given
+        val request = LoginRequestDto("test@naver.com", "12345")
+        val json = jacksonObjectMapper().writeValueAsString(request)
+
+        // when + then
+        mockMvc.perform(
+            post("/auth/login")
+                .content(json)
+                .contentType("application/json")
+                .accept("application/json")
         ).andExpect(
-            jsonPath("\$.cause").value("ERROR: duplicate key value violates unique constraint \"uk_6dotkott2kjsp8vw4d0m25fb7\"\n  Detail: Key (email)=(mouse1@naver.com) already exists.")
+            status().isNotFound
+        ).andExpect(
+            jsonPath("\$.error").value("Not Found")
+        ).andExpect(
+            jsonPath("\$.statusCode").value(404)
+        ).andExpect(
+            jsonPath("\$.message").value("비밀번호가 일치하지 않습니다.")
         ).andDo(print())
     }
 }

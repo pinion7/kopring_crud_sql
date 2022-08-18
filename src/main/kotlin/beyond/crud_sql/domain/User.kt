@@ -5,32 +5,33 @@ import org.hibernate.annotations.GenericGenerator
 import java.util.*
 import javax.persistence.*
 
+
 @Entity
 @Table(name = "Users")
 class User(email: String, password: String, nickname: String) : BaseTimeEntity() {
 
     @Id
-    @GeneratedValue(generator = "uuid-gen")
+    @GeneratedValue(generator = "uuid-gen", strategy = GenerationType.IDENTITY)
     @GenericGenerator(name = "uuid-gen", strategy = "uuid2")
     @Column(nullable = false, updatable = false)
     var id: UUID? = null
-        private set;
+        protected set;
 
     @Column(unique = true, nullable = false)
     var email: String = email
-        private set;
+        protected set;
 
     @Column(nullable = false)
     var password: String = password
-        private set;
+        protected set;
 
     @Column(unique = true, nullable = false)
     var nickname: String = nickname
-        private set;
+        protected set;
 
     @OneToMany(mappedBy = "user")
     var posts: MutableList<Post> = mutableListOf()
-        private set;
+        protected set;
 
     fun changeNickname(nickname: String) {
         this.nickname = nickname
