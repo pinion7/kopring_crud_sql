@@ -5,5 +5,5 @@ class ValidatorErrorResult(
     statusCode: Int,
     message: String?,
     cause: String?,
-    override val validation: String? = null,
+    val validation: MutableMap<String?, String?>
 ) : ErrorResult(error, statusCode, message, cause)

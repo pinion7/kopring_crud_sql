@@ -13,19 +13,18 @@ class User(email: String, password: String, nickname: String) : BaseTimeEntity()
     @Id
     @GeneratedValue(generator = "uuid-gen", strategy = GenerationType.IDENTITY)
     @GenericGenerator(name = "uuid-gen", strategy = "uuid2")
-    @Column(nullable = false, updatable = false)
-    var id: UUID? = null
-        protected set;
+    @Column(updatable = false)
+    val id: UUID? = null
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     var email: String = email
         protected set;
 
-    @Column(nullable = false)
+    @Column
     var password: String = password
         protected set;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     var nickname: String = nickname
         protected set;
 
@@ -40,6 +39,4 @@ class User(email: String, password: String, nickname: String) : BaseTimeEntity()
     override fun toString(): String {
         return "User(id=$id, email='$email', password='$password', nickname='$nickname', posts=$posts)"
     }
-
-
 }

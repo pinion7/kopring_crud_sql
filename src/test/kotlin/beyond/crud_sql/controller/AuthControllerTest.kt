@@ -77,7 +77,7 @@ class AuthControllerTest @Autowired constructor(
         ).andExpect(
             jsonPath("\$.statusCode").value(404)
         ).andExpect(
-            jsonPath("\$.message").value("이메일이 일치하지 않습니다.")
+            jsonPath("\$.message").value("존재하지 않는 이메일 입니다.")
         ).andDo(print())
     }
 

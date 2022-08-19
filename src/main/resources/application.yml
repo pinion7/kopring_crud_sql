@@ -2,8 +2,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:6000/practice
-    username: postgres
-    password: 1234
+    username: ${properties.db.user}
+    password: ${properties.db.password}
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -19,3 +19,14 @@ spring:
 logging:
   level:
     org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    groups:
+      enabled: true
+  swagger-ui:
+    path: swagger.html
+    display-request-duration: true
+    groups-order: DESC

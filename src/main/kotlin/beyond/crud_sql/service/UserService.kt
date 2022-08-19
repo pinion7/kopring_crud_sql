@@ -12,6 +12,7 @@ import beyond.crud_sql.dto.result.GetUserResultDto
 import beyond.crud_sql.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -39,8 +40,6 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
         val result = findUserByEmail(email)
         checkUserPassword(password, result.password)
 
-        log.info(result.toString())
-
         val token = jwtTokenProvider.makeJwtToken(result)
         return ResponseDto(
             GetLoginResultDto(result.id!!, result.email, result.nickname, result.createdDate, result.lastModifiedDate, token),
@@ -67,12 +66,12 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
     private fun findUserByEmail(email: String): User {
         val result = userRepository.findByEmail(email)
         if (result.isEmpty()) {
-            throw NotFoundException("이메일이 일치하지 않습니다.")
+            throw NotFoundException("존재하지 않는 이메일 입니다.")
         }
         return result[0]
     }
 
     private fun findUserById(userId: UUID): User {
-        return userRepository.findById(userId).orElse(null) ?: throw NotFoundException("존재하지 않는 유저 입니다.")
+        return userRepository.findByIdOrNull(userId) ?: throw NotFoundException("존재하지 않는 유저 입니다.")
     }
 }

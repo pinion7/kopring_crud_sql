@@ -12,7 +12,6 @@ import java.util.*
 @Component
 class JwtTokenProvider {
 
-    private val issuer = "admin"
     private val secret = "secret"
     private val preFix = "Bearer "
 
@@ -21,7 +20,7 @@ class JwtTokenProvider {
 
         return Jwts.builder()
             .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-            .setIssuer(issuer)
+            .setIssuer(ISSUER)
             .setIssuedAt(now)
             .setExpiration(Date(now.time + Duration.ofMinutes(30).toMillis()))
             .claim("id", user.id)
@@ -30,9 +29,9 @@ class JwtTokenProvider {
             .compact()
     }
 
-    fun parseJwtToken(authorizationHeader: String): Claims? {
-        validationAuthorizationHeader(authorizationHeader)
-        val token = extractToken(authorizationHeader)
+    fun parseJwtToken(authorization: String): Claims? {
+        validateAuthorization(authorization)
+        val token = extractToken(authorization)
 
         return Jwts.parser()
             .setSigningKey(secret)
@@ -40,13 +39,17 @@ class JwtTokenProvider {
             .body
     }
 
-    private fun validationAuthorizationHeader(header: String) {
+    private fun validateAuthorization(header: String) {
         if (!header.startsWith(preFix)) {
-          throw IllegalArgumentException()
+          throw IllegalArgumentException("잘못된 prefix 입니다.")
         }
     }
 
     private fun extractToken(authorizationHeader: String): String {
         return authorizationHeader.substring(preFix.length)
+    }
+
+    companion object {
+        private const val ISSUER = "admin"
     }
 }

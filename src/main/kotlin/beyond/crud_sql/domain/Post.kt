@@ -23,7 +23,7 @@ class Post(
     @Id
     @GeneratedValue(generator = "uuid-gen", strategy = GenerationType.IDENTITY)
     @GenericGenerator(name = "uuid-gen", strategy = "uuid2")
-    @Column(nullable = false, updatable = false)
+    @Column(updatable = false)
     val id: UUID? = null
 ) : BaseTimeEntity() {
 

@@ -17,11 +17,18 @@ class LoginInterceptor(private val jwtTokenProvider: JwtTokenProvider) : Handler
     private val log = LoggerFactory.getLogger(UserService::class.java)
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        val authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
-        log.info(authorizationHeader)
+        val requestURI = request.requestURI
+        log.info("preHandle [{}][{}]", request.dispatcherType, requestURI)
 
+        val method = request.method
+        if (method == "GET") {
+            return true
+        }
+
+        val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
+        log.info(authorization)
         try {
-            val claims = jwtTokenProvider.parseJwtToken(authorizationHeader)
+            val claims = jwtTokenProvider.parseJwtToken(authorization)
             log.info(claims.toString())
             return true
         } catch (e: ExpiredJwtException) {
