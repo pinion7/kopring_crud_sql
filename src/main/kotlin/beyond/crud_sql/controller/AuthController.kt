@@ -36,7 +36,10 @@ class AuthController(
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ClassValidatorErrorResult::class))])
     @ApiResponse(responseCode = "404", content = [Content(schema = Schema(implementation = NotFoundErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = InternalServerErrorResult::class))])
-    fun loginUser(@RequestBody @Validated request: LoginRequestDto, bindingResult: BindingResult): ResponseEntity<ResponseDto<GetLoginResultDto>> {
+    fun loginUser(
+        @RequestBody @Validated request: LoginRequestDto,
+        bindingResult: BindingResult
+    ): ResponseEntity<ResponseDto<GetLoginResultDto>> {
         val results = userService.getUserAndToken(request.email, request.password)
         return ResponseEntity.status(200).body(results)
     }

@@ -5,32 +5,34 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Header
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.*
 
 @Component
-class JwtTokenProvider {
+class JwtTokenProvider(environment: Environment) {
 
-    private val secret = "secret"
-    private val preFix = "Bearer "
+    private val prefix = environment.getProperty("jwt.prefix")!!
+    private val secret = environment.getProperty("jwt.access.secret")!!
+    private val expiration = environment.getProperty("jwt.access.expiration")!!
 
-    fun makeJwtToken(user: User): String {
+    fun issueAccessToken(user: User): String {
         val now = Date()
 
         return Jwts.builder()
             .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-            .setIssuer(ISSUER)
+            .setIssuer("admin")
             .setIssuedAt(now)
-            .setExpiration(Date(now.time + Duration.ofMinutes(30).toMillis()))
+            .setExpiration(Date(now.time + Duration.ofMinutes(expiration.toLong()).toMillis()))
             .claim("id", user.id)
             .claim("email", user.email)
             .signWith(SignatureAlgorithm.HS256, secret)
             .compact()
     }
 
-    fun parseJwtToken(authorization: String): Claims? {
-        validateAuthorization(authorization)
+    fun verifyAccessToken(authorization: String): Claims? {
+        validatePrefix(authorization)
         val token = extractToken(authorization)
 
         return Jwts.parser()
@@ -39,17 +41,13 @@ class JwtTokenProvider {
             .body
     }
 
-    private fun validateAuthorization(header: String) {
-        if (!header.startsWith(preFix)) {
+    private fun validatePrefix(header: String) {
+        if (!header.startsWith(prefix)) {
           throw IllegalArgumentException("잘못된 prefix 입니다.")
         }
     }
 
-    private fun extractToken(authorizationHeader: String): String {
-        return authorizationHeader.substring(preFix.length)
-    }
-
-    companion object {
-        private const val ISSUER = "admin"
+    private fun extractToken(authorization: String): String {
+        return authorization.substring(prefix.length + 1)
     }
 }

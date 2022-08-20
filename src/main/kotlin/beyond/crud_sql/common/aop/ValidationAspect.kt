@@ -23,6 +23,10 @@ class ValidationAspect {
 
     @Before("cutMethod() || cutClass()")
     fun doValidation(joinPoint: JoinPoint) {
+        log.info(joinPoint.kind)
+        log.info(joinPoint.sourceLocation.toString())
+        log.info(joinPoint.staticPart.toString())
+        log.info(joinPoint.target.toString())
         val args = joinPoint.args
         log.info("[trace] {} args={}", joinPoint.signature, args)
 

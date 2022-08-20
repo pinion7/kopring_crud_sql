@@ -26,10 +26,10 @@ class LoginInterceptor(private val jwtTokenProvider: JwtTokenProvider) : Handler
         }
 
         val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
-        log.info(authorization)
+        log.info("authorization = {}", authorization)
         try {
-            val claims = jwtTokenProvider.parseJwtToken(authorization)
-            log.info(claims.toString())
+            val claims = jwtTokenProvider.verifyAccessToken(authorization)
+            log.info("claims = {}", claims.toString())
             return true
         } catch (e: ExpiredJwtException) {
             log.error("ExpiredJwtException", e)

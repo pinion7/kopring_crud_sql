@@ -40,7 +40,7 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
         val result = findUserByEmail(email)
         checkUserPassword(password, result.password)
 
-        val token = jwtTokenProvider.makeJwtToken(result)
+        val token = jwtTokenProvider.issueAccessToken(result)
         return ResponseDto(
             GetLoginResultDto(result.id!!, result.email, result.nickname, result.createdDate, result.lastModifiedDate, token),
             200,
