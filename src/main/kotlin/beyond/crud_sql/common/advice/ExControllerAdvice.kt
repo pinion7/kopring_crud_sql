@@ -1,15 +1,17 @@
 package beyond.crud_sql.common.advice
 
-import beyond.crud_sql.common.custom.ValidatorException
-import beyond.crud_sql.common.custom.ConflictException
-import beyond.crud_sql.common.custom.NotFoundException
-import beyond.crud_sql.common.custom.UnauthorizedException
-import beyond.crud_sql.common.result.*
+import beyond.crud_sql.common.exception.custom.ConflictException
+import beyond.crud_sql.common.exception.custom.NotFoundException
+import beyond.crud_sql.common.exception.custom.UnauthorizedException
+import beyond.crud_sql.common.exception.custom.ClassValidatorException
+import beyond.crud_sql.common.exception.result.*
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import javax.validation.ConstraintViolationException
 
 @RestControllerAdvice
 class ExControllerAdvice {
@@ -26,14 +28,24 @@ class ExControllerAdvice {
         return ResponseEntity<ErrorResult>(errorResult, HttpStatus.BAD_REQUEST)
     }
 
-    @ExceptionHandler(ValidatorException::class)
-    fun validatorExHandler(e: ValidatorException): ResponseEntity<ErrorResult> {
-        val errorResult: ErrorResult = ValidatorErrorResult(
+    @ExceptionHandler
+    fun classValidatorExHandler(e: ClassValidatorException): ResponseEntity<ErrorResult> {
+        val errorResult: ErrorResult = ClassValidatorErrorResult(
+            "Invalid Request",
+            400,
+            e.message,
+            e.errors
+        )
+        return ResponseEntity<ErrorResult>(errorResult, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class, MethodArgumentTypeMismatchException::class)
+    fun paramValidatorExHandler(e: Exception): ResponseEntity<ErrorResult> {
+        val errorResult: ErrorResult = ParamValidatorErrorResult(
             "Invalid Request",
             400,
             e.message,
             e.cause?.cause?.localizedMessage,
-            e.errors
         )
         return ResponseEntity<ErrorResult>(errorResult, HttpStatus.BAD_REQUEST)
     }
@@ -72,15 +84,14 @@ class ExControllerAdvice {
     }
 
     @ExceptionHandler
-    fun internalServerExHandler(e: Exception): ResponseEntity<InternalServerErrorResult> {
-        log.error(e.localizedMessage)
-        val errorResult = InternalServerErrorResult(
+    fun internalServerExHandler(e: Exception): ResponseEntity<ErrorResult> {
+        log.error(e.toString())
+        val errorResult: ErrorResult = InternalServerErrorResult(
             "Internal Server Error",
             500,
             e.message,
             e.cause?.cause?.localizedMessage
         )
-        log.info(errorResult.toString())
-        return ResponseEntity<InternalServerErrorResult>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity<ErrorResult>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

@@ -1,6 +1,6 @@
 package beyond.crud_sql.common.interceptor
 
-import beyond.crud_sql.common.custom.UnauthorizedException
+import beyond.crud_sql.common.exception.custom.UnauthorizedException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.service.UserService
 import io.jsonwebtoken.ExpiredJwtException

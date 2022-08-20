@@ -1,9 +1,8 @@
-package beyond.crud_sql.common.result
+package beyond.crud_sql.common.exception.result
 
-class ValidatorErrorResult(
+class InternalServerErrorResult(
     error: String,
     statusCode: Int,
     message: String?,
     cause: String?,
-    val validation: MutableMap<String?, String?>
 ) : ErrorResult(error, statusCode, message, cause)

@@ -1,6 +1,6 @@
-package beyond.crud_sql.common.result
+package beyond.crud_sql.common.exception.result
 
-class InternalServerErrorResult(
+class UnauthorizedErrorResult(
     error: String,
     statusCode: Int,
     message: String?,

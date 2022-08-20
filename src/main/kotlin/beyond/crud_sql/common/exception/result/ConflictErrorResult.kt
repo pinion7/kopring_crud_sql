@@ -1,6 +1,6 @@
-package beyond.crud_sql.common.result
+package beyond.crud_sql.common.exception.result
 
-class NotFoundErrorResult(
+class ConflictErrorResult(
     error: String,
     statusCode: Int,
     message: String?,

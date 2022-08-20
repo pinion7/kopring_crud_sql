@@ -1,9 +1,7 @@
 package beyond.crud_sql.common.aop
 
-import beyond.crud_sql.common.custom.ValidatorException
+import beyond.crud_sql.common.exception.custom.ClassValidatorException
 import org.aspectj.lang.JoinPoint
-import org.aspectj.lang.ProceedingJoinPoint
-import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.annotation.Before
 import org.aspectj.lang.annotation.Pointcut
@@ -13,17 +11,18 @@ import org.springframework.validation.BindingResult
 
 @Aspect
 @Component
-class BindingAspect {
+class ValidationAspect {
 
-    private val log = LoggerFactory.getLogger(BindingAspect::class.java)
+    private val log = LoggerFactory.getLogger(ValidationAspect::class.java)
 
-//    @Pointcut("@annotation(beyond.crud_sql.common.aop.annotation.BindingAop)")
-//    fun cut() {}
-    @Pointcut("execution(* beyond.crud_sql.controller..*(..))")
-    fun cut() {}
+    @Pointcut("@annotation(beyond.crud_sql.common.aop.annotation.ValidationAop)")
+    fun cutMethod() {}
 
-    @Before("cut()")
-    fun doBinding(joinPoint: JoinPoint) {
+    @Pointcut("@within(beyond.crud_sql.common.aop.annotation.ValidationAop)")
+    fun cutClass() {}
+
+    @Before("cutMethod() || cutClass()")
+    fun doValidation(joinPoint: JoinPoint) {
         val args = joinPoint.args
         log.info("[trace] {} args={}", joinPoint.signature, args)
 
@@ -34,7 +33,7 @@ class BindingAspect {
                     for (e in arg.allErrors) {
                         errors[e.code] = e.defaultMessage
                     }
-                    throw ValidatorException("유효성 검사 에러입니다.", errors)
+                    throw ClassValidatorException("유효성 검사 에러입니다.", errors)
                 }
             }
         }

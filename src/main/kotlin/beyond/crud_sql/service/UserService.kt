@@ -1,7 +1,7 @@
 package beyond.crud_sql.service
 
-import beyond.crud_sql.common.custom.ConflictException
-import beyond.crud_sql.common.custom.NotFoundException
+import beyond.crud_sql.common.exception.custom.ConflictException
+import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
 import beyond.crud_sql.dto.request.CreateUserRequestDto

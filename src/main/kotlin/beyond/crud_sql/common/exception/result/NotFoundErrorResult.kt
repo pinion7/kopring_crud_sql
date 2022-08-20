@@ -1,8 +1,8 @@
-package beyond.crud_sql.common.result
+package beyond.crud_sql.common.exception.result
 
-class BadRequestErrorResult(
+class NotFoundErrorResult(
     error: String,
     statusCode: Int,
     message: String?,
-    cause: String?
+    cause: String?,
 ) : ErrorResult(error, statusCode, message, cause)
