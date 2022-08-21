@@ -1,16 +1,11 @@
 package beyond.crud_sql.controller
 
-import beyond.crud_sql.common.exception.custom.ConflictException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
 import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.request.UpdateUserRequestDto
-import beyond.crud_sql.dto.result.GetLoginResultDto
-import beyond.crud_sql.dto.result.GetUserResultDto
-import beyond.crud_sql.repository.UserRepository
 import beyond.crud_sql.service.UserService
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,12 +13,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.validation.BeanPropertyBindingResult
-import org.springframework.validation.BindingResult
-import java.util.UUID
+import java.util.*
 import javax.persistence.EntityManager
 
 
@@ -38,31 +31,15 @@ class UserControllerTest @Autowired constructor(
 ) {
 
     lateinit var user1: User
-    lateinit var loginUser: GetLoginResultDto
+    lateinit var token: String
 
     @BeforeEach
     fun setUp() {
         user1 = User("mouse1@naver.com", "1234", "실험쥐1")
-        val request = CreateUserRequestDto(user1.email, user1.password, user1.nickname)
-        val json = jacksonObjectMapper().writeValueAsString(request)
+        em.persist(user1)
+        em.flush()
 
-        // when + then
-        mockMvc.perform(
-            post("/users")
-                .content(json)
-                .contentType("application/json")
-                .accept("application/json")
-        ).andExpect(
-            status().isCreated
-        ).andExpect(
-            content().contentType("application/json")
-        ).andExpect(
-            jsonPath("\$.statusCode").value(201)
-        ).andExpect(
-            jsonPath("\$.message").value("회원 등록에 성공하였습니다.")
-        ).andDo(print())
-
-        loginUser = userService.getUserAndToken(user1.email, user1.password).results
+        token = userService.getUserAndToken(user1.email, user1.password).results.accessToken
     }
 
     @Test
@@ -151,21 +128,21 @@ class UserControllerTest @Autowired constructor(
     fun getUser_success() {
         // given + when + then
         mockMvc.perform(
-            get("/users/${loginUser.userId}")
+            get("/users/${user1.id}")
         ).andExpect(
             status().isOk
         ).andExpect(
             content().contentType("application/json")
         ).andExpect(
-            jsonPath("\$.results.userId").value(loginUser.userId.toString())
+            jsonPath("\$.results.userId").value(user1.id.toString())
         ).andExpect(
             jsonPath("\$.results.email").value(user1.email)
         ).andExpect(
             jsonPath("\$.results.nickname").value(user1.nickname)
         ).andExpect(
-            jsonPath("\$.results.createdDate").value(loginUser.createdDate.toString())
+            jsonPath("\$.results.createdDate").value(user1.createdDate.toString())
         ).andExpect(
-            jsonPath("\$.results.lastModifiedDate").value(loginUser.lastModifiedDate.toString())
+            jsonPath("\$.results.lastModifiedDate").value(user1.lastModifiedDate.toString())
         ).andExpect(
             jsonPath("\$.statusCode").value(200)
         ).andExpect(
@@ -176,11 +153,11 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun getUser_fail_400() {
         // given
-        val tempId = "b38d098e-b757-4fff-9ffd-3580e415ede61342452353145316126"
+        val userId = "b38d098e-b757-4fff-9ffd-3580e415ede61342452353145316126"
 
         // when + then
         mockMvc.perform(
-            get("/users/$tempId")
+            get("/users/$userId")
         ).andExpect(
             status().isBadRequest
         ).andExpect(
@@ -199,11 +176,11 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun getUser_fail_404() {
         // given
-        val tempId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
 
         // when + then
         mockMvc.perform(
-            get("/users/$tempId")
+            get("/users/$userId")
         ).andExpect(
             status().isNotFound
         ).andExpect(
@@ -220,13 +197,13 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun updateUser_success() {
         // given
-        val request = UpdateUserRequestDto(loginUser.userId.toString(), "새로운 닉네임")
+        val request = UpdateUserRequestDto(user1.id.toString(), "새로운 닉네임")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then
         mockMvc.perform(
-            patch("/users/${loginUser.userId}")
-                .header("Authorization", "${jwtTokenProvider.prefix} ${loginUser.accessToken}" )
+            patch("/users/${user1.id}")
+                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -235,7 +212,7 @@ class UserControllerTest @Autowired constructor(
         ).andExpect(
             content().contentType("application/json")
         ).andExpect(
-            jsonPath("\$.results.userId").value(loginUser.userId.toString())
+            jsonPath("\$.results.userId").value(user1.id.toString())
         ).andExpect(
             jsonPath("\$.statusCode").value(200)
         ).andExpect(
@@ -246,13 +223,13 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun updateUser_fail_400() {
         // given
-        val request = UpdateUserRequestDto(loginUser.userId.toString() + "d", "")
+        val request = UpdateUserRequestDto(user1.id.toString() + "d", "long.long.long.long")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then
         mockMvc.perform(
-            patch("/users/${loginUser.userId}")
-                .header("Authorization", "${jwtTokenProvider.prefix} ${loginUser.accessToken}" )
+            patch("/users/${user1.id}")
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -269,7 +246,7 @@ class UserControllerTest @Autowired constructor(
         ).andExpect(
             jsonPath("\$.validation.userId").value(mutableListOf("UUID는 36자만 가능합니다."))
         ).andExpect(
-            jsonPath("\$.validation.nickname").value(mutableListOf("필드 값이 유효하지 않습니다.", "2자 이상 10자 이하여야 합니다."))
+            jsonPath("\$.validation.nickname").value(mutableListOf("2자 이상 10자 이하여야 합니다."))
         ).andDo(print())
     }
 
@@ -281,8 +258,8 @@ class UserControllerTest @Autowired constructor(
 
         // when + then
         mockMvc.perform(
-            patch("/users/${loginUser.userId}")
-                .header("Authorization", "${jwtTokenProvider.prefix} ${loginUser.accessToken}" )
+            patch("/users/${user1.id}")
+                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -310,14 +287,14 @@ class UserControllerTest @Autowired constructor(
     fun deleteUser_success() {
         // given + when + then
         mockMvc.perform(
-            delete("/users/${loginUser.userId}")
-                .header("Authorization", "${jwtTokenProvider.prefix} ${loginUser.accessToken}" )
+            delete("/users/${user1.id}")
+                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
         ).andExpect(
             status().isOk
         ).andExpect(
             content().contentType("application/json")
         ).andExpect(
-            jsonPath("\$.results.userId").value(loginUser.userId.toString())
+            jsonPath("\$.results.userId").value(user1.id.toString())
         ).andExpect(
             jsonPath("\$.statusCode").value(200)
         ).andExpect(
@@ -330,8 +307,8 @@ class UserControllerTest @Autowired constructor(
     fun deleteUser_fail_400() {
         // given + when + then
         mockMvc.perform(
-            delete("/users/${loginUser.userId}d")
-                .header("Authorization", "${jwtTokenProvider.prefix} ${loginUser.accessToken}" )
+            delete("/users/${user1.id}d")
+                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
         ).andExpect(
             status().isBadRequest
         ).andExpect(

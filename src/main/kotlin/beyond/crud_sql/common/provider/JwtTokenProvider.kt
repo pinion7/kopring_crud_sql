@@ -5,12 +5,14 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Header
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.*
 
 @Component
+@PropertySource("classpath:/env.properties")
 class JwtTokenProvider(environment: Environment) {
 
     val prefix = environment.getProperty("jwt.prefix")!!

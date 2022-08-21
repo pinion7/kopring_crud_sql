@@ -1,12 +1,8 @@
 package beyond.crud_sql.service
 
-import beyond.crud_sql.common.exception.custom.ConflictException
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
-import beyond.crud_sql.dto.request.CreateUserRequestDto
-import beyond.crud_sql.dto.request.LoginRequestDto
-import beyond.crud_sql.repository.UserRepository
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -22,7 +18,6 @@ import javax.persistence.EntityManager
 @Transactional
 class UserServiceTest @Autowired constructor(
     val userService: UserService,
-    val userRepository: UserRepository,
     val em: EntityManager,
     val jwtTokenProvider: JwtTokenProvider,
 ) {
