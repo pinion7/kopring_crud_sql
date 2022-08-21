@@ -1,6 +1,7 @@
 package beyond.crud_sql.controller
 
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.request.LoginRequestDto
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -10,9 +11,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager
 
@@ -48,6 +48,8 @@ class AuthControllerTest @Autowired constructor(
         ).andExpect(
             status().isOk
         ).andExpect(
+            content().contentType("application/json")
+        ).andExpect(
             jsonPath("\$.results.email").value(user.email)
         ).andExpect(
             jsonPath("\$.results.nickname").value(user.nickname)
@@ -59,7 +61,39 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun login_fail1() {
+    fun login_fail_400() {
+        // given
+        val request = LoginRequestDto().apply {
+            email = "email.com"
+            password = "long.long.long.long.long.long.long"
+        }
+        val json = jacksonObjectMapper().writeValueAsString(request)
+
+        // when + then
+        mockMvc.perform(
+            post("/auth/login")
+                .content(json)
+                .contentType("application/json")
+                .accept("application/json")
+        ).andExpect(
+            status().isBadRequest
+        ).andExpect(
+            content().contentType("application/json")
+        ).andExpect(
+            jsonPath("\$.error").value("Invalid Request")
+        ).andExpect(
+            jsonPath("\$.statusCode").value(400)
+        ).andExpect(
+            jsonPath("\$.message").value("유효성 검사 에러입니다.")
+        ).andExpect(
+            jsonPath("\$.validation.email").value(mutableListOf("올바른 email 형식이 아닙니다."))
+        ).andExpect(
+            jsonPath("\$.validation.password").value(mutableListOf("4자 이상 12자 이하여야 합니다."))
+        ).andDo(print())
+    }
+
+    @Test
+    fun login_fail_404_case1() {
         // given
         val request = LoginRequestDto("wrong@naver.com", "1234")
         val json = jacksonObjectMapper().writeValueAsString(request)
@@ -73,6 +107,8 @@ class AuthControllerTest @Autowired constructor(
         ).andExpect(
             status().isNotFound
         ).andExpect(
+            content().contentType("application/json")
+        ).andExpect(
             jsonPath("\$.error").value("Not Found")
         ).andExpect(
             jsonPath("\$.statusCode").value(404)
@@ -82,7 +118,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun login_fail2() {
+    fun login_fail_404_case2() {
         // given
         val request = LoginRequestDto("test@naver.com", "12345")
         val json = jacksonObjectMapper().writeValueAsString(request)
@@ -95,6 +131,8 @@ class AuthControllerTest @Autowired constructor(
                 .accept("application/json")
         ).andExpect(
             status().isNotFound
+        ).andExpect(
+            content().contentType("application/json")
         ).andExpect(
             jsonPath("\$.error").value("Not Found")
         ).andExpect(

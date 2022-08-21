@@ -15,7 +15,6 @@ private val log = LoggerFactory.getLogger(UserService::class.java)
 @EntityListeners(AuditingEntityListener::class)
 abstract class BaseTimeEntity {
 
-
     @CreatedDate
     @Column(updatable = false, nullable = false)
     var createdDate: LocalDateTime? = null

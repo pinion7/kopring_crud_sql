@@ -41,11 +41,19 @@ class ExControllerAdvice {
 
     @ExceptionHandler(ConstraintViolationException::class, MethodArgumentTypeMismatchException::class)
     fun paramValidatorExHandler(e: Exception): ResponseEntity<ErrorResult> {
+        val errors = mutableMapOf<String?, MutableList<String>?>()
+        val messages = e.message?.split(", ")
+        for (m in messages!!) {
+            val (temp, value) = m.split(": ")
+            val key = temp.split(".")[1]
+            if (errors[key] == null) errors[key] = mutableListOf()
+            errors[key]!!.add(value)
+        }
+
         val errorResult: ErrorResult = ParamValidatorErrorResult(
             "Invalid Request",
             400,
-            e.message,
-            e.cause?.cause?.localizedMessage,
+            validation = errors
         )
         return ResponseEntity<ErrorResult>(errorResult, HttpStatus.BAD_REQUEST)
     }

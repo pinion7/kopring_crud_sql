@@ -4,5 +4,5 @@ class ClassValidatorErrorResult(
     error: String,
     statusCode: Int,
     message: String?,
-    val validation: MutableMap<String?, String?>,
+    val validation: MutableMap<String?, MutableList<String>?>,
 ) : ErrorResult(error, statusCode, message)

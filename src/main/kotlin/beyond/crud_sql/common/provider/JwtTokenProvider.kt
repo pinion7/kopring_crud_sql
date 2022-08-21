@@ -13,9 +13,9 @@ import java.util.*
 @Component
 class JwtTokenProvider(environment: Environment) {
 
-    private val prefix = environment.getProperty("jwt.prefix")!!
-    private val secret = environment.getProperty("jwt.access.secret")!!
-    private val expiration = environment.getProperty("jwt.access.expiration")!!
+    val prefix = environment.getProperty("jwt.prefix")!!
+    val secret = environment.getProperty("jwt.access.secret")!!
+    val expiration = environment.getProperty("jwt.access.expiration")!!
 
     fun issueAccessToken(user: User): String {
         val now = Date()

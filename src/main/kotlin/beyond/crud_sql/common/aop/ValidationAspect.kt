@@ -16,26 +16,26 @@ class ValidationAspect {
     private val log = LoggerFactory.getLogger(ValidationAspect::class.java)
 
     @Pointcut("@annotation(beyond.crud_sql.common.aop.annotation.ValidationAop)")
-    fun cutMethod() {}
+    fun cutMethod() {
+    }
 
     @Pointcut("@within(beyond.crud_sql.common.aop.annotation.ValidationAop)")
-    fun cutClass() {}
+    fun cutClass() {
+    }
 
     @Before("cutMethod() || cutClass()")
     fun doValidation(joinPoint: JoinPoint) {
-        log.info(joinPoint.kind)
-        log.info(joinPoint.sourceLocation.toString())
-        log.info(joinPoint.staticPart.toString())
-        log.info(joinPoint.target.toString())
         val args = joinPoint.args
         log.info("[trace] {} args={}", joinPoint.signature, args)
+        print(joinPoint)
 
         for (arg in args) {
             if (arg is BindingResult) {
-                if (arg.allErrors.size > 0) {
-                    val errors = mutableMapOf<String?, String?>()
-                    for (e in arg.allErrors) {
-                        errors[e.code] = e.defaultMessage
+                if (arg.fieldErrors.size > 0) {
+                    val errors = mutableMapOf<String?, MutableList<String>?>()
+                    for (e in arg.fieldErrors) {
+                        if (errors[e.field] == null) errors[e.field] = mutableListOf()
+                        errors[e.field]!!.add(e.defaultMessage!!)
                     }
                     throw ClassValidatorException("유효성 검사 에러입니다.", errors)
                 }

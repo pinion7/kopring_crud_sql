@@ -4,5 +4,5 @@ class NotFoundErrorResult(
     error: String,
     statusCode: Int,
     message: String?,
-    cause: String?,
+    cause: String?
 ) : ErrorResult(error, statusCode, message, cause)

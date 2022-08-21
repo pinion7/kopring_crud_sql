@@ -6,9 +6,7 @@ import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
 import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
-import beyond.crud_sql.dto.result.CreateUserResultDto
-import beyond.crud_sql.dto.result.GetLoginResultDto
-import beyond.crud_sql.dto.result.GetUserResultDto
+import beyond.crud_sql.dto.result.*
 import beyond.crud_sql.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
@@ -24,16 +22,15 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
     private val log = LoggerFactory.getLogger(UserService::class.java)
 
     @Transactional
-    fun createUser(params: CreateUserRequestDto): ResponseDto<CreateUserResultDto> {
-        val (email, password, nickname) = params
+    fun createUser(email: String, password: String, nickname: String): ResponseDto<CreateUserResultDto> {
         val createUser = User(email, password, nickname)
+        val savedUser = userRepository.save(createUser)
 
-        try {
-            val savedUser = userRepository.saveAndFlush(createUser)
-            return ResponseDto(CreateUserResultDto(savedUser.id!!), 201, "유저 등록에 성공하였습니다.")
-        } catch (e: DataIntegrityViolationException) {
-            throw ConflictException("이메일 혹은 닉네임 중복입니다.", e.cause)
-        }
+        return ResponseDto(
+            CreateUserResultDto(savedUser.id!!),
+            201,
+            "회원 등록에 성공하였습니다."
+        )
     }
 
     fun getUserAndToken(email: String, password: String): ResponseDto<GetLoginResultDto> {
@@ -42,7 +39,14 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
 
         val token = jwtTokenProvider.issueAccessToken(result)
         return ResponseDto(
-            GetLoginResultDto(result.id!!, result.email, result.nickname, result.createdDate, result.lastModifiedDate, token),
+            GetLoginResultDto(
+                result.id!!,
+                result.email,
+                result.nickname,
+                result.createdDate,
+                result.lastModifiedDate,
+                token
+            ),
             200,
             "로그인에 성공하였습니다."
         )
@@ -50,10 +54,33 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
 
     fun getUser(userId: UUID): ResponseDto<GetUserResultDto> {
         val result = findUserById(userId)
+
         return ResponseDto(
             GetUserResultDto(result.id!!, result.email, result.nickname, result.createdDate, result.lastModifiedDate),
             200,
-            "유저 정보 조회가 완료되었습니다."
+            "회원 정보 조회가 완료되었습니다."
+        )
+    }
+
+    @Transactional
+    fun updateUser(userId: UUID, nickname: String): ResponseDto<UpdateUserResultDto> {
+        val result = findUserById(userId)
+        result.changeNickname(nickname)
+
+        return ResponseDto(
+            UpdateUserResultDto(result.id!!),
+            200,
+            "회원 정보 수정이 완료되었습니다."
+        )
+    }
+
+    @Transactional
+    fun deleteUser(userId: UUID): ResponseDto<DeleteUserResultDto> {
+        userRepository.deleteById(userId)
+        return ResponseDto(
+            DeleteUserResultDto(userId),
+            200,
+            "회원 탈퇴가 완료되었습니다."
         )
     }
 
