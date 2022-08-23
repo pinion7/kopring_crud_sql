@@ -62,10 +62,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun login_fail_400() {
         // given
-        val request = LoginRequestDto().apply {
-            email = "email.com"
-            password = "long.long.long.long.long.long.long"
-        }
+        val request = LoginRequestDto("email.com", "long.long.long.long.long.long.long")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then

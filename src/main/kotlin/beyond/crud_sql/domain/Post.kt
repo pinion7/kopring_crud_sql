@@ -18,10 +18,6 @@ class Post(title: String, content: String, user: User) : BaseTimeEntity() {
     val id: UUID? = null
 
     @Column
-    var writer: String = user.nickname
-        protected set
-
-    @Column
     var title: String = title
         protected set
 

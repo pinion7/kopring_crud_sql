@@ -3,13 +3,15 @@ package beyond.crud_sql.service
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.domain.Post
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.condition.PostSearchCondition
 import beyond.crud_sql.dto.request.UpdatePostRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
-import beyond.crud_sql.dto.result.CreatePostResultDto
-import beyond.crud_sql.dto.result.DeletePostResultDto
-import beyond.crud_sql.dto.result.GetPostResultDto
-import beyond.crud_sql.dto.result.UpdatePostResultDto
+import beyond.crud_sql.dto.result.*
 import beyond.crud_sql.repository.PostRepository
+import beyond.crud_sql.repository.PostRepositoryCustom
+import beyond.crud_sql.repository.PostRepositoryCustomImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -69,6 +71,45 @@ class PostService(
         )
     }
 
+    fun getPostListByUserId(userId: UUID, pageRequest: PageRequest): ResponseDto<GetUserPostListResultDto> {
+        val pageablePostList = postRepository.findPostListByUserId(userId, pageRequest)
+
+        return ResponseDto(
+            GetUserPostListResultDto(
+                userId,
+                pageablePostList
+            ),
+            200,
+            "회원 게시글 조회가 완료되었습니다."
+        )
+
+    }
+
+    fun getPostList(pageRequest: PageRequest): ResponseDto<GetPostListResultDto>? {
+        val pageablePostList = postRepository.findPostList(pageRequest)
+
+        return ResponseDto(
+            GetPostListResultDto(
+                pageablePostList
+            ),
+            200,
+            "게시글 리스트 조회가 완료되었습니다."
+        )
+    }
+
+    fun searchPostListByCondition(
+        condition: PostSearchCondition,
+        pageable: Pageable,
+    ): ResponseDto<SearchPostListResultDto> {
+        val postList = postRepository.findPostListWithCondition(condition, pageable)
+
+        return ResponseDto(
+            SearchPostListResultDto(postList),
+            200,
+            "게시글 리스트 조건 검색이 완료되었습니다."
+        )
+    }
+
     private fun findPostByPostId(postId: UUID): Post {
         return postRepository.findByIdOrNull(postId) ?: throw NotFoundException("게시글을 찾을 수 없습니다.")
     }
@@ -81,4 +122,6 @@ class PostService(
         }
         return findPost[0]
     }
+
+
 }

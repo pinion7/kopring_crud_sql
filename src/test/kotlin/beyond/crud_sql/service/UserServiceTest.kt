@@ -54,6 +54,7 @@ class UserServiceTest @Autowired constructor(
         assertThat(user1.id).isEqualTo(userId)
         assertThat(user1.email).isEqualTo(email)
         assertThat(user1.nickname).isEqualTo(nickname)
+        assertThat(user1.quit).isEqualTo(false)
         assertThat(user1.createdDate).isEqualTo(createdDate)
         assertThat(user1.lastModifiedDate).isEqualTo(lastModifiedDate)
         assertThat(claims?.issuer).isEqualTo("admin")
@@ -82,6 +83,7 @@ class UserServiceTest @Autowired constructor(
         assertThat(result.results.userId).isEqualTo(user1.id)
         assertThat(result.results.email).isEqualTo(user1.email)
         assertThat(result.results.nickname).isEqualTo(user1.nickname)
+        assertThat(result.results.quit).isEqualTo(user1.quit)
         assertThat(result.results.createdDate).isEqualTo(user1.createdDate)
         assertThat(result.results.lastModifiedDate).isEqualTo(user1.lastModifiedDate)
         assertThat(result.statusCode).isEqualTo(200)
@@ -114,6 +116,7 @@ class UserServiceTest @Autowired constructor(
 
         // when + then
         assertThat(result.results.userId).isEqualTo(user1.id)
+        assertThat(result.results.quit).isEqualTo(true)
         assertThat(result.statusCode).isEqualTo(200)
         assertThat(result.message).isEqualTo("회원 탈퇴가 완료되었습니다.")
     }

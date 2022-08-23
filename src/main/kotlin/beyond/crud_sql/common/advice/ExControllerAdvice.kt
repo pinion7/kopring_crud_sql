@@ -1,5 +1,6 @@
 package beyond.crud_sql.common.advice
 
+import beyond.crud_sql.common.aop.annotation.ValidationAop
 import beyond.crud_sql.common.exception.custom.ConflictException
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.exception.custom.UnauthorizedException

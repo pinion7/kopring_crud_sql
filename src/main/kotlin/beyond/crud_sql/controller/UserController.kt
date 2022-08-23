@@ -8,10 +8,8 @@ import beyond.crud_sql.domain.User
 import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.request.UpdateUserRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
-import beyond.crud_sql.dto.result.CreateUserResultDto
-import beyond.crud_sql.dto.result.DeleteUserResultDto
-import beyond.crud_sql.dto.result.GetUserResultDto
-import beyond.crud_sql.dto.result.UpdateUserResultDto
+import beyond.crud_sql.dto.result.*
+import beyond.crud_sql.service.PostService
 import beyond.crud_sql.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -21,13 +19,14 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.hibernate.validator.constraints.Length
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
-import org.springframework.validation.BeanPropertyBindingResult
-import org.springframework.validation.BindingErrorProcessor
 import org.springframework.validation.BindingResult
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import java.util.*
+import javax.validation.constraints.Min
 
 @Tag(name = "Users", description = "회원 API")
 @RestController
@@ -36,9 +35,10 @@ import java.util.*
 @Validated
 class UserController(
     private val userService: UserService,
+    private val postService: PostService,
 ) {
 
-    private val log = LoggerFactory.getLogger(UserController::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping
     @Operation(summary = "회원 가입 API")
@@ -95,7 +95,7 @@ class UserController(
     }
 
     @DeleteMapping("/{userId}")
-    @Operation(summary = "회원 삭제 API")
+    @Operation(summary = "회원 탈퇴 API")
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "401", content = [Content(schema = Schema(implementation = ErrorResult::class))])
@@ -106,6 +106,23 @@ class UserController(
         @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") userId: String,
     ): ResponseEntity<ResponseDto<DeleteUserResultDto>> {
         val results = userService.deleteUser(user)
+        return ResponseEntity.status(200).body(results)
+    }
+
+    @GetMapping("/{userId}/posts")
+    @Operation(summary = "회원 게시글 조회 API")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    fun getUserPostList(
+        @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") userId: String,
+        @RequestParam("page") @Min(0) page: Int? = null,
+        @RequestParam("size") @Min(1) size: Int? = null,
+    ): ResponseEntity<ResponseDto<GetUserPostListResultDto>> {
+        val pageRequest = PageRequest.of(
+            page ?: 0, size ?: 10, Sort.by(Sort.Direction.DESC, "createdDate")
+        )
+        val results = postService.getPostListByUserId(UUID.fromString(userId), pageRequest)
         return ResponseEntity.status(200).body(results)
     }
 }

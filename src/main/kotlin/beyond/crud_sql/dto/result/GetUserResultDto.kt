@@ -7,6 +7,7 @@ data class GetUserResultDto(
     val userId: UUID,
     val email: String,
     val nickname: String,
+    val quit: Boolean,
     val createdDate: LocalDateTime?,
     val lastModifiedDate: LocalDateTime?,
 )

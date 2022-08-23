@@ -55,6 +55,7 @@ class PostServiceTest @Autowired constructor(
         // then
         assertThat(result.results.postId).isEqualTo(post1.id)
         assertThat(result.results.userId).isEqualTo(user1.id)
+        assertThat(result.results.writer).isEqualTo(user1.nickname)
         assertThat(result.results.title).isEqualTo(post1.title)
         assertThat(result.results.content).isEqualTo(post1.content)
         assertThat(result.results.createdDate).isEqualTo(post1.createdDate)

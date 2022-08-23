@@ -97,7 +97,7 @@ class PostControllerTest @Autowired constructor(
         ).andExpect(
             jsonPath("\$.message").value("유효성 검사 에러입니다.")
         ).andExpect(
-            jsonPath("\$.validation.content").value(mutableListOf("필드 값이 유효하지 않습니다.", "1자 이상이어야 합니다."))
+            jsonPath("\$.validation.content.size()").value(2)
         ).andDo(print())
     }
 

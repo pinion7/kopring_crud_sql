@@ -68,10 +68,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun createUser_fail_400() {
         // given
-        val request = CreateUserRequestDto().apply {
-            email = "email.com"
-            password = "long.long.long.long.long.long.long"
-        }
+        val request = CreateUserRequestDto("email.com", "long.long.long.long.long.long.long")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then
@@ -140,6 +137,8 @@ class UserControllerTest @Autowired constructor(
         ).andExpect(
             jsonPath("\$.results.nickname").value(user1.nickname)
         ).andExpect(
+            jsonPath("\$.results.quit").value(user1.quit)
+        ).andExpect(
             jsonPath("\$.results.createdDate").value(user1.createdDate.toString())
         ).andExpect(
             jsonPath("\$.results.lastModifiedDate").value(user1.lastModifiedDate.toString())
@@ -203,7 +202,7 @@ class UserControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             patch("/users/${user1.id}")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -254,7 +253,10 @@ class UserControllerTest @Autowired constructor(
         val request = UpdateUserRequestDto("새로운 닉네임")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
-        // when + then
+        // when
+        userService.deleteUser(user1)
+
+        // then
         mockMvc.perform(
             patch("/users/${user1.id}")
                 .header("Authorization", "${jwtTokenProvider.prefix} $token" )
@@ -294,12 +296,13 @@ class UserControllerTest @Autowired constructor(
         ).andExpect(
             jsonPath("\$.results.userId").value(user1.id.toString())
         ).andExpect(
+            jsonPath("\$.results.quit").value(true)
+        ).andExpect(
             jsonPath("\$.statusCode").value(200)
         ).andExpect(
             jsonPath("\$.message").value("회원 탈퇴가 완료되었습니다.")
         ).andDo(print())
     }
-
 
     @Test
     fun deleteUser_fail_400() {

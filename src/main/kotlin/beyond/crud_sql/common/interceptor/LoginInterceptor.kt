@@ -54,8 +54,11 @@ class LoginInterceptor(
     }
 
     private fun setUser(request: HttpServletRequest, userId: String) {
-        val user = userRepository.findByIdOrNull(UUID.fromString(userId)) ?: throw NotFoundException("존재하지 않는 유저 입니다.");
-        request.setAttribute("User", user)
+        val user = userRepository.findByIdAndQuit(UUID.fromString(userId), false)
+        if (user.isEmpty()) {
+            throw NotFoundException("존재하지 않는 유저 입니다.")
+        }
+        request.setAttribute("User", user[0])
     }
 
     override fun postHandle(

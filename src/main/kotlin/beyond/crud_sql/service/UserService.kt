@@ -7,7 +7,7 @@ import beyond.crud_sql.dto.response.ResponseDto
 import beyond.crud_sql.dto.result.*
 import beyond.crud_sql.repository.UserRepository
 import org.slf4j.LoggerFactory
-import org.springframework.data.repository.findByIdOrNull
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -19,7 +19,7 @@ class UserService(
     private val jwtTokenProvider: JwtTokenProvider
 ) {
 
-    private val log = LoggerFactory.getLogger(UserService::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
     fun createUser(email: String, password: String, nickname: String): ResponseDto<CreateUserResultDto> {
@@ -56,7 +56,14 @@ class UserService(
         val result = findUserById(userId)
 
         return ResponseDto(
-            GetUserResultDto(result.id!!, result.email, result.nickname, result.createdDate, result.lastModifiedDate),
+            GetUserResultDto(
+                result.id!!,
+                result.email,
+                result.nickname,
+                result.quit,
+                result.createdDate,
+                result.lastModifiedDate
+            ),
             200,
             "회원 정보 조회가 완료되었습니다."
         )
@@ -64,7 +71,7 @@ class UserService(
 
     @Transactional
     fun updateUser(user: User, nickname: String): ResponseDto<UpdateUserResultDto> {
-        user.changeNickname(nickname)
+        user.updateNickname(nickname)
 
         return ResponseDto(
             UpdateUserResultDto(user.id!!),
@@ -75,9 +82,10 @@ class UserService(
 
     @Transactional
     fun deleteUser(user: User): ResponseDto<DeleteUserResultDto> {
-        userRepository.delete(user)
+        user.withdraw()
+
         return ResponseDto(
-            DeleteUserResultDto(user.id!!),
+            DeleteUserResultDto(user.id!!, user.quit),
             200,
             "회원 탈퇴가 완료되었습니다."
         )
@@ -90,7 +98,7 @@ class UserService(
     }
 
     private fun findUserByEmail(email: String): User {
-        val result = userRepository.findByEmail(email)
+        val result = userRepository.findByEmailAndQuit(email, false)
         if (result.isEmpty()) {
             throw NotFoundException("존재하지 않는 이메일 입니다.")
         }
@@ -98,6 +106,11 @@ class UserService(
     }
 
     private fun findUserById(userId: UUID): User {
-        return userRepository.findByIdOrNull(userId) ?: throw NotFoundException("존재하지 않는 유저 입니다.")
+        val result = userRepository.findByIdAndQuit(userId, false)
+        if (result.isEmpty()) {
+            throw NotFoundException("존재하지 않는 유저 입니다.")
+        }
+        return result[0]
     }
+
 }

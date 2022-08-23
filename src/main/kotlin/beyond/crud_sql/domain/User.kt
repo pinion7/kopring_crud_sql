@@ -28,12 +28,19 @@ class User(email: String, password: String, nickname: String) : BaseTimeEntity()
     var nickname: String = nickname
         protected set;
 
+    @Column
+    var quit: Boolean = false
+
     @OneToMany(mappedBy = "user")
     var posts: MutableList<Post> = mutableListOf()
         protected set;
 
-    fun changeNickname(nickname: String) {
+    fun updateNickname(nickname: String) {
         this.nickname = nickname
+    }
+
+    fun withdraw() {
+        this.quit = true
     }
 
     override fun toString(): String {
