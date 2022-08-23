@@ -1,8 +1,8 @@
 package beyond.crud_sql.dto.request
 
 import org.hibernate.validator.constraints.Length
-import org.hibernate.validator.constraints.Range
-import javax.validation.constraints.*
+import javax.validation.constraints.Email
+import javax.validation.constraints.NotEmpty
 
 data class LoginRequestDto(
     @field:NotEmpty(message = "필드 값이 유효하지 않습니다.")

@@ -1,6 +1,7 @@
 package beyond.crud_sql.domain
 
 import beyond.crud_sql.domain.base.BaseTimeEntity
+import beyond.crud_sql.dto.request.UpdatePostRequestDto
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.annotations.GenericGenerator
 import java.util.*
@@ -17,6 +18,10 @@ class Post(title: String, content: String, user: User) : BaseTimeEntity() {
     val id: UUID? = null
 
     @Column
+    var writer: String = user.nickname
+        protected set
+
+    @Column
     var title: String = title
         protected set
 
@@ -29,4 +34,10 @@ class Post(title: String, content: String, user: User) : BaseTimeEntity() {
     @JoinColumn(name = "user_id")
     var user: User = user
         protected set
+
+    fun updatePostFields(params: UpdatePostRequestDto) {
+        val (title, content) = params
+        if (title != null) this.title = title
+        if (content != null) this.content = content
+    }
 }

@@ -90,7 +90,7 @@ class UserServiceTest @Autowired constructor(
 
     @Test
     fun getUser_fail_404() {
-        // given + when + then
+        // when + then
         assertThatThrownBy {
             userService.getUser(UUID.randomUUID())
         }.isInstanceOf(NotFoundException::class.java).hasMessageContaining("존재하지 않는 유저 입니다.")
@@ -99,7 +99,7 @@ class UserServiceTest @Autowired constructor(
     @Test
     fun updateUser_success() {
         // given + when
-        val result = userService.updateUser(user1.id!!, "새로운 닉네임")
+        val result = userService.updateUser(user1, "새로운 닉네임")
 
         // then
         assertThat(result.results.userId).isEqualTo(user1.id)
@@ -108,17 +108,9 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun updateUser_fail_404() {
-        // given + when + then
-        assertThatThrownBy {
-            userService.updateUser(UUID.randomUUID(), "새로운 닉네임")
-        }.isInstanceOf(NotFoundException::class.java).hasMessageContaining("존재하지 않는 유저 입니다.")
-    }
-
-    @Test
     fun deleteUser_success() {
         // given
-        val result = userService.deleteUser(user1.id!!)
+        val result = userService.deleteUser(user1)
 
         // when + then
         assertThat(result.results.userId).isEqualTo(user1.id)

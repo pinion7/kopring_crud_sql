@@ -3,6 +3,8 @@ package beyond.crud_sql.controller
 import beyond.crud_sql.common.aop.annotation.ValidationAop
 import beyond.crud_sql.common.exception.custom.ConflictException
 import beyond.crud_sql.common.exception.result.*
+import beyond.crud_sql.common.resolver.annotation.GetUser
+import beyond.crud_sql.domain.User
 import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.request.UpdateUserRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
@@ -74,16 +76,18 @@ class UserController(
     @Operation(summary = "회원 수정 API")
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    @ApiResponse(responseCode = "401", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "404", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "409", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     fun updateUser(
+        @GetUser user: User,
+        @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") userId: String,
         @RequestBody @Validated request: UpdateUserRequestDto,
         bindingResult: BindingResult,
     ): ResponseEntity<ResponseDto<UpdateUserResultDto>> {
         try {
-            val (userId, nickname) = request
-            val results = userService.updateUser(UUID.fromString(userId), nickname!!)
+            val results = userService.updateUser(user, request.nickname!!)
             return ResponseEntity.status(200).body(results)
         } catch (e: DataIntegrityViolationException) {
             throw ConflictException("닉네임 중복입니다.", e.cause)
@@ -94,11 +98,14 @@ class UserController(
     @Operation(summary = "회원 삭제 API")
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    @ApiResponse(responseCode = "401", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    @ApiResponse(responseCode = "404", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     fun deleteUser(
+        @GetUser user: User,
         @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") userId: String,
     ): ResponseEntity<ResponseDto<DeleteUserResultDto>> {
-        val results = userService.deleteUser(UUID.fromString(userId))
+        val results = userService.deleteUser(user)
         return ResponseEntity.status(200).body(results)
     }
 }

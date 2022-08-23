@@ -1,18 +1,25 @@
 package beyond.crud_sql.common.interceptor
 
+import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.exception.custom.UnauthorizedException
 import beyond.crud_sql.common.provider.JwtTokenProvider
+import beyond.crud_sql.repository.UserRepository
 import beyond.crud_sql.service.UserService
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.MalformedJwtException
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpHeaders
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.ModelAndView
+import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class LoginInterceptor(private val jwtTokenProvider: JwtTokenProvider) : HandlerInterceptor {
+class LoginInterceptor(
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val userRepository: UserRepository,
+) : HandlerInterceptor {
 
     private val log = LoggerFactory.getLogger(UserService::class.java)
 
@@ -25,11 +32,12 @@ class LoginInterceptor(private val jwtTokenProvider: JwtTokenProvider) : Handler
             return true
         }
 
-        val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
+        val authorization = getAuthorization(request)
         log.info("authorization = {}", authorization)
         try {
             val claims = jwtTokenProvider.verifyAccessToken(authorization)
             log.info("claims = {}", claims.toString())
+            setUser(request, claims?.get("id") as String)
             return true
         } catch (e: ExpiredJwtException) {
             log.error("ExpiredJwtException", e)
@@ -38,6 +46,16 @@ class LoginInterceptor(private val jwtTokenProvider: JwtTokenProvider) : Handler
             log.error("MalformedJwtException", e)
             throw UnauthorizedException("토큰 검증에 실패하였습니다.")
         }
+    }
+
+    private fun getAuthorization(request: HttpServletRequest): String {
+        return request.getHeader(HttpHeaders.AUTHORIZATION)
+            ?: throw IllegalArgumentException("헤더에 Authorization이 누락되었습니다.")
+    }
+
+    private fun setUser(request: HttpServletRequest, userId: String) {
+        val user = userRepository.findByIdOrNull(UUID.fromString(userId)) ?: throw NotFoundException("존재하지 않는 유저 입니다.");
+        request.setAttribute("User", user)
     }
 
     override fun postHandle(

@@ -1,23 +1,23 @@
 package beyond.crud_sql.service
 
-import beyond.crud_sql.common.exception.custom.ConflictException
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
-import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
 import beyond.crud_sql.dto.result.*
 import beyond.crud_sql.repository.UserRepository
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
+import java.util.*
 
 @Service
 @Transactional(readOnly = true)
-class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtTokenProvider) {
+class UserService(
+    private val userRepository: UserRepository,
+    private val jwtTokenProvider: JwtTokenProvider
+) {
 
     private val log = LoggerFactory.getLogger(UserService::class.java)
 
@@ -63,22 +63,21 @@ class UserService(val userRepository: UserRepository, val jwtTokenProvider: JwtT
     }
 
     @Transactional
-    fun updateUser(userId: UUID, nickname: String): ResponseDto<UpdateUserResultDto> {
-        val result = findUserById(userId)
-        result.changeNickname(nickname)
+    fun updateUser(user: User, nickname: String): ResponseDto<UpdateUserResultDto> {
+        user.changeNickname(nickname)
 
         return ResponseDto(
-            UpdateUserResultDto(result.id!!),
+            UpdateUserResultDto(user.id!!),
             200,
             "회원 정보 수정이 완료되었습니다."
         )
     }
 
     @Transactional
-    fun deleteUser(userId: UUID): ResponseDto<DeleteUserResultDto> {
-        userRepository.deleteById(userId)
+    fun deleteUser(user: User): ResponseDto<DeleteUserResultDto> {
+        userRepository.delete(user)
         return ResponseDto(
-            DeleteUserResultDto(userId),
+            DeleteUserResultDto(user.id!!),
             200,
             "회원 탈퇴가 완료되었습니다."
         )
