@@ -5,6 +5,7 @@ import beyond.crud_sql.common.exception.custom.ConflictException
 import beyond.crud_sql.common.exception.result.*
 import beyond.crud_sql.common.resolver.annotation.GetUser
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.condition.UserSearchCondition
 import beyond.crud_sql.dto.request.CreateUserRequestDto
 import beyond.crud_sql.dto.request.UpdateUserRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
@@ -20,6 +21,7 @@ import org.hibernate.validator.constraints.Length
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
@@ -52,7 +54,7 @@ class UserController(
     ): ResponseEntity<ResponseDto<CreateUserResultDto>> {
         try {
             val (email, password, nickname) = request
-            val results = userService.createUser(email!!, password!!, nickname!!)
+            val results = userService.createUser(email, password, nickname)
             return ResponseEntity.status(201).body(results)
         } catch (e: DataIntegrityViolationException) {
             throw ConflictException("이메일 혹은 닉네임 중복입니다.", e.cause)
@@ -82,12 +84,11 @@ class UserController(
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     fun updateUser(
         @GetUser user: User,
-        @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") userId: String,
         @RequestBody @Validated request: UpdateUserRequestDto,
         bindingResult: BindingResult,
     ): ResponseEntity<ResponseDto<UpdateUserResultDto>> {
         try {
-            val results = userService.updateUser(user, request.nickname!!)
+            val results = userService.updateUser(user, request.nickname)
             return ResponseEntity.status(200).body(results)
         } catch (e: DataIntegrityViolationException) {
             throw ConflictException("닉네임 중복입니다.", e.cause)
@@ -110,19 +111,32 @@ class UserController(
     }
 
     @GetMapping("/{userId}/posts")
-    @Operation(summary = "회원 게시글 조회 API")
+    @Operation(summary = "단일 회원 게시글 목록 조회 API")
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
-    fun getUserPostList(
+    fun getUserWithPostAll(
         @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") userId: String,
-        @RequestParam("page") @Min(0) page: Int? = null,
-        @RequestParam("size") @Min(1) size: Int? = null,
-    ): ResponseEntity<ResponseDto<GetUserPostListResultDto>> {
+        @RequestParam("page") @Min(0, message = "0 이상이어야 합니다.") page: Int? = null,
+        @RequestParam("size") @Min(1, message = "1 이상이어야 합니다.") size: Int? = null,
+    ): ResponseEntity<ResponseDto<GetUserWithPostAllResultDto>> {
         val pageRequest = PageRequest.of(
             page ?: 0, size ?: 10, Sort.by(Sort.Direction.DESC, "createdDate")
         )
-        val results = postService.getPostListByUserId(UUID.fromString(userId), pageRequest)
+        val results = postService.getUserWithPostAll(UUID.fromString(userId), pageRequest)
+        return ResponseEntity.status(200).body(results)
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "회원 검색 API")
+    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
+    fun searchUserAll(
+        condition: UserSearchCondition,
+        pageable: Pageable,
+    ): ResponseEntity<ResponseDto<SearchUserAllResultDto>> {
+        val results = userService.searchUserAll(condition, pageable)
         return ResponseEntity.status(200).body(results)
     }
 }

@@ -1,6 +1,7 @@
 package beyond.crud_sql.domain
 
 import beyond.crud_sql.domain.base.BaseTimeEntity
+import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.GenericGenerator
 import java.util.*
 import javax.persistence.*

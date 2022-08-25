@@ -75,7 +75,7 @@ class PostServiceTest @Autowired constructor(
     @Test
     fun updatePost_200() {
         // given
-        val updateParams = UpdatePostRequestDto(null, "게시글 수정을 합시다.")
+        val updateParams = UpdatePostRequestDto("", "게시글 수정을 합시다.")
 
         // when
         val result = postService.updatePost(post1.id!!, user1.id!!, updateParams)
@@ -90,7 +90,7 @@ class PostServiceTest @Autowired constructor(
     @Test
     fun updatePost_404() {
         // given
-        val updateParams = UpdatePostRequestDto("제목 수정해봅니다.", null)
+        val updateParams = UpdatePostRequestDto("제목 수정해봅니다.", "")
 
         // when + then
         assertThatThrownBy {

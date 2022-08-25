@@ -16,7 +16,7 @@ import javax.validation.ConstraintViolationException
 
 @RestControllerAdvice
 class ExControllerAdvice {
-    private val log = LoggerFactory.getLogger(ExControllerAdvice::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler
     fun badRequestExHandler(e: IllegalArgumentException): ResponseEntity<ErrorResult> {

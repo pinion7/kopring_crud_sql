@@ -27,6 +27,12 @@ class LoginInterceptor(
         val requestURI = request.requestURI
         log.info("preHandle [{}][{}]", request.dispatcherType, requestURI)
 
+        log.info("path [{}]", request.servletPath)
+        log.info("path [{}]", request.requestedSessionId)
+        log.info("path [{}]", request.queryString)
+        log.info("path [{}]", request.session)
+        log.info("path [{}]", request.httpServletMapping)
+
         val method = request.method
         if (method == "GET") {
             return true

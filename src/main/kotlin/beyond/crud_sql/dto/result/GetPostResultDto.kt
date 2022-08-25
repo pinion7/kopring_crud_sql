@@ -9,6 +9,6 @@ data class GetPostResultDto(
     val writer: String,
     val title: String,
     val content: String,
-    val createdDate: LocalDateTime,
-    val lastModifiedDate: LocalDateTime,
+    val createdDate: String,
+    val lastModifiedDate: String,
 )

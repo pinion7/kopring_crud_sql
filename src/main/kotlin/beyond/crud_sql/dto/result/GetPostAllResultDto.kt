@@ -1,13 +1,13 @@
 package beyond.crud_sql.dto.result
 
 import beyond.crud_sql.domain.Post
-import beyond.crud_sql.dto.show.PostShowDto
+import beyond.crud_sql.dto.show.SearchPostShowDto
 import org.springframework.data.domain.Page
 
-class SearchPostListResultDto(
-    pageablePost: Page<PostShowDto>
+class GetPostAllResultDto(
+    pageablePost: Page<Post>
 ) {
-    val posts = pageablePost.content
+    val posts = pageablePost.content.map { post -> SearchPostShowDto(post) }
     val totalPages = pageablePost.totalPages
     val totalElements = pageablePost.totalElements
     val numberOfElements = pageablePost.numberOfElements

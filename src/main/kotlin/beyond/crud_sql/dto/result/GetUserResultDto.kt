@@ -8,6 +8,6 @@ data class GetUserResultDto(
     val email: String,
     val nickname: String,
     val quit: Boolean,
-    val createdDate: LocalDateTime?,
-    val lastModifiedDate: LocalDateTime?,
+    val createdDate: String?,
+    val lastModifiedDate: String?,
 )

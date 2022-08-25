@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -33,12 +35,35 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun login_success() {
+    fun login_200() {
         // given
         val request = LoginRequestDto("test@naver.com", "1234")
         val json = jacksonObjectMapper().writeValueAsString(request)
 
         // when + then
+//        mockMvc.post("/auth/login") {
+//            content = json
+//            contentType = MediaType.APPLICATION_JSON
+//            accept = MediaType.APPLICATION_JSON
+//        }.andExpect {
+//            status { isOk() }
+//            content {
+//                contentType(MediaType.APPLICATION_JSON)
+//                jsonPath("""$.results.email""").value(user.email)
+//                json(
+//                    //language=json
+//                    """
+//                        {
+//                            "results": {
+//                              "email": "${user.email}",
+//
+//                            }
+//                        }
+//                    """.trimIndent()
+//                )
+//            }
+//        }.andDo { print() }
+
         mockMvc.perform(
             post("/auth/login")
                 .content(json)

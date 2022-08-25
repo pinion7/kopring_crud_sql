@@ -33,7 +33,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun createUser_success() {
+    fun createUser_200() {
         // given + when
         val result = userService.createUser("mouse2@naver.com", "1234", "실험쥐2")
 
@@ -44,7 +44,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun getUserAndToken_success() {
+    fun getUserAndToken_200() {
         // given + when
         val result = userService.getUserAndToken(user1.email, user1.password)
         val (userId, email, nickname, createdDate, lastModifiedDate, accessToken) = result.results
@@ -63,7 +63,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun getUserAndToken_fail_404() {
+    fun getUserAndToken_404() {
         // given + when + then
         assertThatThrownBy {
             userService.getUserAndToken("test@naver.com", user1.password)
@@ -75,7 +75,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun getUser_success() {
+    fun getUser_200() {
         // given + when
         val result = userService.getUser(user1.id!!)
 
@@ -91,7 +91,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun getUser_fail_404() {
+    fun getUser_404() {
         // when + then
         assertThatThrownBy {
             userService.getUser(UUID.randomUUID())
@@ -99,7 +99,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun updateUser_success() {
+    fun updateUser_200() {
         // given + when
         val result = userService.updateUser(user1, "새로운 닉네임")
 
@@ -110,7 +110,7 @@ class UserServiceTest @Autowired constructor(
     }
 
     @Test
-    fun deleteUser_success() {
+    fun deleteUser_200() {
         // given
         val result = userService.deleteUser(user1)
 

@@ -6,8 +6,9 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.persistence.*
+
 
 private val log = LoggerFactory.getLogger(UserService::class.java)
 
@@ -17,26 +18,22 @@ abstract class BaseTimeEntity {
 
     @CreatedDate
     @Column(updatable = false, nullable = false)
-    var createdDate: LocalDateTime? = null
+    var createdDate: String? = null
         protected set
 
     @LastModifiedDate
     @Column(nullable = false)
-    var lastModifiedDate: LocalDateTime? = null
+    var lastModifiedDate: String? = null
         protected set
 
-//    @PrePersist
-//    fun preCreate() {
-//        log.info("prePersist createDate={}",createdDate.toString())
-//        log.info("prePersist lastModifiedDate={}",lastModifiedDate.toString())
-//        createdDate = LocalDateTime.now()
-//        lastModifiedDate = createdDate
-//    }
-//
-//    @PreUpdate
-//    fun preUpdate() {
-//        log.info("preUpdate createDate={}", createdDate.toString())
-//        log.info("preUpdate lastModifiedDate={}", lastModifiedDate.toString())
-////        lastModifiedDate = createdDate
-//    }
+    @PrePersist
+    fun onPrePersist() {
+        createdDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        lastModifiedDate = createdDate
+    }
+
+    @PreUpdate
+    fun onPreUpdate() {
+        lastModifiedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    }
 }

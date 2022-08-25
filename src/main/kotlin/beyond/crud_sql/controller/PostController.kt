@@ -25,7 +25,6 @@ import org.springframework.validation.BindingResult
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
-import javax.validation.Valid
 import javax.validation.constraints.Min
 
 @Tag(name = "Posts", description = "게시판 API")
@@ -61,7 +60,7 @@ class PostController(
     @ApiResponse(responseCode = "404", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     fun getPost(
-        @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") postId: String
+        @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") postId: String,
     ): ResponseEntity<ResponseDto<GetPostResultDto>> {
         val result = postService.getPost(UUID.fromString(postId))
         return ResponseEntity.status(200).body(result)
@@ -78,7 +77,7 @@ class PostController(
         @GetUser user: User,
         @PathVariable @Length(min = 36, max = 36, message = "UUID는 36자만 가능합니다.") postId: String,
         @RequestBody @Validated request: UpdatePostRequestDto,
-        bindingResult: BindingResult
+        bindingResult: BindingResult,
     ): ResponseEntity<ResponseDto<UpdatePostResultDto>> {
         val result = postService.updatePost(UUID.fromString(postId), user.id!!, request)
         return ResponseEntity.status(200).body(result)
@@ -104,14 +103,12 @@ class PostController(
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
-    fun getPostList(
-        @RequestParam("page") @Min(0) page: Int? = null,
-        @RequestParam("size") @Min(1) size: Int? = null,
-    ): ResponseEntity<ResponseDto<GetPostListResultDto>> {
-        val pageRequest = PageRequest.of(
-            page ?: 0, size ?: 10, Sort.by(Sort.Direction.DESC, "createdDate")
-        )
-        val results = postService.getPostList(pageRequest)
+    fun getPostAll(
+        @RequestParam("page") @Min(0, message = "0 이상이어야 합니다.") page: Int? = null,
+        @RequestParam("size") @Min(1, message = "1 이상이어야 합니다.") size: Int? = null,
+    ): ResponseEntity<ResponseDto<GetPostAllResultDto>> {
+        val pageRequest = PageRequest.of(page ?: 0, size ?: 10)
+        val results = postService.getPostAll(pageRequest)
         return ResponseEntity.status(200).body(results)
     }
 
@@ -120,11 +117,11 @@ class PostController(
     @ApiResponse(responseCode = "200")
     @ApiResponse(responseCode = "400", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
-    fun searchPostList(
+    fun searchPostAll(
         condition: PostSearchCondition,
-        pageable: Pageable
-    ): ResponseEntity<ResponseDto<SearchPostListResultDto>> {
-        val results = postService.searchPostListByCondition(condition, pageable)
+        pageable: Pageable,
+    ): ResponseEntity<ResponseDto<SearchPostAllResultDto>> {
+        val results = postService.searchPostAll(condition, pageable)
         return ResponseEntity.status(200).body(results)
     }
 }

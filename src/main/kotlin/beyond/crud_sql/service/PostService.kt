@@ -8,8 +8,6 @@ import beyond.crud_sql.dto.request.UpdatePostRequestDto
 import beyond.crud_sql.dto.response.ResponseDto
 import beyond.crud_sql.dto.result.*
 import beyond.crud_sql.repository.PostRepository
-import beyond.crud_sql.repository.PostRepositoryCustom
-import beyond.crud_sql.repository.PostRepositoryCustomImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -71,11 +69,11 @@ class PostService(
         )
     }
 
-    fun getPostListByUserId(userId: UUID, pageRequest: PageRequest): ResponseDto<GetUserPostListResultDto> {
-        val pageablePostList = postRepository.findPostListByUserId(userId, pageRequest)
+    fun getUserWithPostAll(userId: UUID, pageRequest: PageRequest): ResponseDto<GetUserWithPostAllResultDto> {
+        val pageablePostList = postRepository.findPostAllByUserId(userId, pageRequest)
 
         return ResponseDto(
-            GetUserPostListResultDto(
+            GetUserWithPostAllResultDto(
                 userId,
                 pageablePostList
             ),
@@ -85,11 +83,11 @@ class PostService(
 
     }
 
-    fun getPostList(pageRequest: PageRequest): ResponseDto<GetPostListResultDto>? {
-        val pageablePostList = postRepository.findPostList(pageRequest)
+    fun getPostAll(pageRequest: PageRequest): ResponseDto<GetPostAllResultDto>? {
+        val pageablePostList = postRepository.findPostAll(pageRequest)
 
         return ResponseDto(
-            GetPostListResultDto(
+            GetPostAllResultDto(
                 pageablePostList
             ),
             200,
@@ -97,14 +95,14 @@ class PostService(
         )
     }
 
-    fun searchPostListByCondition(
+    fun searchPostAll(
         condition: PostSearchCondition,
         pageable: Pageable,
-    ): ResponseDto<SearchPostListResultDto> {
-        val postList = postRepository.findPostListWithCondition(condition, pageable)
+    ): ResponseDto<SearchPostAllResultDto> {
+        val postList = postRepository.findPostAllWithCondition(condition, pageable)
 
         return ResponseDto(
-            SearchPostListResultDto(postList),
+            SearchPostAllResultDto(postList),
             200,
             "게시글 리스트 조건 검색이 완료되었습니다."
         )
@@ -122,6 +120,8 @@ class PostService(
         }
         return findPost[0]
     }
+
+
 
 
 }

@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val userService: UserService
 ) {
-    private val log = LoggerFactory.getLogger(AuthController::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("/login")
     @Operation(summary = "로그인 API")
@@ -45,7 +45,7 @@ class AuthController(
         bindingResult: BindingResult
     ): ResponseEntity<ResponseDto<GetLoginResultDto>> {
         val (email, password) = request
-        val results = userService.getUserAndToken(email!!, password!!)
+        val results = userService.getUserAndToken(email, password)
         return ResponseEntity.status(200).body(results)
     }
 }

@@ -3,11 +3,13 @@ package beyond.crud_sql.service
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.condition.PostSearchCondition
+import beyond.crud_sql.dto.condition.UserSearchCondition
 import beyond.crud_sql.dto.response.ResponseDto
 import beyond.crud_sql.dto.result.*
 import beyond.crud_sql.repository.UserRepository
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -111,6 +113,15 @@ class UserService(
             throw NotFoundException("존재하지 않는 유저 입니다.")
         }
         return result[0]
+    }
+
+    fun searchUserAll(condition: UserSearchCondition, pageable: Pageable): ResponseDto<SearchUserAllResultDto> {
+        val result = userRepository.findUserAllWithCondition(condition, pageable)
+        return ResponseDto(
+            SearchUserAllResultDto(result),
+            200,
+            "ok"
+        )
     }
 
 }

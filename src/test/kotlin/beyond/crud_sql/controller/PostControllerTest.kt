@@ -5,6 +5,8 @@ import beyond.crud_sql.domain.Post
 import beyond.crud_sql.domain.User
 import beyond.crud_sql.dto.request.CreatePostRequestDto
 import beyond.crud_sql.dto.request.UpdatePostRequestDto
+import beyond.crud_sql.repository.PostRepository
+import beyond.crud_sql.service.PostService
 import beyond.crud_sql.service.UserService
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -12,7 +14,11 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -27,7 +33,9 @@ class PostControllerTest @Autowired constructor(
     private val mockMvc: MockMvc,
     private val em: EntityManager,
     private val userService: UserService,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val postService: PostService,
+    private val postRepository: PostRepository,
+    private val jwtTokenProvider: JwtTokenProvider,
 ) {
 
     lateinit var user1: User
@@ -56,7 +64,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             post("/posts")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -82,7 +90,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             post("/posts")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -110,7 +118,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             post("/posts")
-                .header("Authorization", "${jwtTokenProvider.prefix} 1s23" )
+                .header("Authorization", "${jwtTokenProvider.prefix} 1s23")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -204,7 +212,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             patch("/posts/${post1.id}")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -232,7 +240,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             patch("/posts/${post1.id}")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -260,7 +268,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.perform(
             patch("/posts/${UUID.randomUUID()}")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
                 .content(json)
                 .contentType("application/json")
                 .accept("application/json")
@@ -282,7 +290,7 @@ class PostControllerTest @Autowired constructor(
         // given + when + then
         mockMvc.perform(
             delete("/posts/${post1.id}")
-                .header("Authorization", "${jwtTokenProvider.prefix} $token" )
+                .header("Authorization", "${jwtTokenProvider.prefix} $token")
         ).andExpect(
             status().isOk
         ).andExpect(
@@ -296,6 +304,105 @@ class PostControllerTest @Autowired constructor(
         ).andExpect(
             jsonPath("\$.message").value("게시글 삭제가 완료되었습니다.")
         ).andDo(print())
+    }
+
+    @Test
+    fun getPostAll_200() {
+        // given
+        postRepository.deleteById(post1.id!!)
+        val pageRequest = PageRequest.of(0, 3)
+        val result = postService.getPostAll(pageRequest)
+        val getPosts = result?.results
+
+        // when + then
+        mockMvc.get("/posts?page=0&size=3")
+            .andExpect {
+                status().isOk
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "results": {
+                                "posts": [
+                                    {
+                                        "postId": "${getPosts!!.posts[0].postId}",
+                                        "userId": "${getPosts.posts[0].userId}",
+                                        "writer": "${getPosts.posts[0].writer}",
+                                        "title": "${getPosts.posts[0].title}",
+                                        "content": "${getPosts.posts[0].content}",
+                                        "createdDate": "${getPosts.posts[0].createdDate}",
+                                        "lastModifiedDate": "${getPosts.posts[0].lastModifiedDate}"
+                                    },
+                                    {
+                                        "postId": "${getPosts.posts[1].postId}",
+                                        "userId": "${getPosts.posts[1].userId}",
+                                        "writer": "${getPosts.posts[1].writer}",
+                                        "title": "${getPosts.posts[1].title}",
+                                        "content": "${getPosts.posts[1].content}",
+                                        "createdDate": "${getPosts.posts[1].createdDate}",
+                                        "lastModifiedDate": "${getPosts.posts[1].lastModifiedDate}"
+                                    },
+                                    {
+                                        "postId": "${getPosts.posts[2].postId}",
+                                        "userId": "${getPosts.posts[2].userId}",
+                                        "writer": "${getPosts.posts[2].writer}",
+                                        "title": "${getPosts.posts[2].title}",
+                                        "content": "${getPosts.posts[2].content}",
+                                        "createdDate": "${getPosts.posts[2].createdDate}",
+                                        "lastModifiedDate": "${getPosts.posts[2].lastModifiedDate}"
+                                    }
+                                ],
+                                "totalPages": ${getPosts.totalPages},
+                                "totalElements": ${getPosts.totalElements},
+                                "numberOfElements": ${getPosts.numberOfElements},
+                                "pageNumber": ${getPosts.pageNumber},
+                                "pageSize": ${getPosts.pageSize},
+                                "isFirst": ${getPosts.isFirst},
+                                "isNext": ${getPosts.isNext}
+                            },
+                            "statusCode": 200,
+                            "message": "게시글 리스트 조회가 완료되었습니다."
+                        }                       
+                        """.trimIndent()
+                    )
+                }
+            }
+
+    }
+
+
+    @Test
+    fun getPostAll_400() {
+        // when + then
+        mockMvc.get("/posts?page=-1&size=0")
+            .andExpect {
+                status().isBadRequest
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "error": "Invalid Request",
+                            "statusCode": 400,
+                            "message": "유효성 검사 에러입니다.",
+                            "validation": {
+                                "page": [
+                                    "0 이상이어야 합니다."
+                                ],
+                                "size": [
+                                    "1 이상이어야 합니다."
+                                ]
+                            },
+                            "cause": null
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }.andDo { print() }
+
     }
 
 }

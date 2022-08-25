@@ -4,15 +4,13 @@ import beyond.crud_sql.domain.Post
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Repository
-interface PostRepository : JpaRepository<Post, UUID>, PostRepositoryCustom {
+interface PostRepository : JpaRepository<Post, UUID>, PostQuerydslRepository {
 
     fun findByIdAndUserId(postId: UUID, userId: UUID): List<Post>
 
@@ -24,14 +22,13 @@ interface PostRepository : JpaRepository<Post, UUID>, PostRepositoryCustom {
                 "order by p.createdDate desc",
         countQuery = "select count(p) from Post p"
     )
-    fun findPostList(pageable: Pageable): Page<Post>
+    fun findPostAll(pageable: Pageable): Page<Post>
 
     @Query(
         value = "select distinct p from Post p " +
                 "join fetch p.user u " +
-                "where p.user.id = :userId " +
-                "order by p.createdDate desc",
+                "where p.user.id = :userId",
         countQuery = "select count(p) from Post p where p.user.id = :userId"
     )
-    fun findPostListByUserId(@Param("userId") userId: UUID, pageable: Pageable): Page<Post>
+    fun findPostAllByUserId(@Param("userId") userId: UUID, pageable: Pageable): Page<Post>
 }

@@ -12,12 +12,28 @@ import java.util.UUID
 
 
 @Repository
-interface UserRepository : JpaRepository<User, UUID> {
+interface UserRepository : JpaRepository<User, UUID>, UserQuerydslRepository {
 
     fun findByEmailAndQuit(email: String, quit: Boolean): MutableList<User>
 
     fun findByIdAndQuit(userId: UUID, quit: Boolean): MutableList<User>
 
-
+    @Query(
+        value = """select distinct u 
+            from User u 
+            join u.posts p 
+            """
+    )
+    fun findUserPosts(): MutableList<User>
 
 }
+
+////language=json
+//private val JSON_STRING = """
+//        {
+//          "name": "minsu",
+//          "age": 35,
+//          "add": "Asia/Seoul",
+//
+//        }
+//    """.trimIndent()

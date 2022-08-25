@@ -13,7 +13,7 @@ import org.springframework.validation.BindingResult
 @Component
 class ValidationAspect {
 
-    private val log = LoggerFactory.getLogger(ValidationAspect::class.java)
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Pointcut("@annotation(beyond.crud_sql.common.aop.annotation.ValidationAop)")
     fun cutMethod() {
@@ -27,7 +27,6 @@ class ValidationAspect {
     fun doValidation(joinPoint: JoinPoint) {
         val args = joinPoint.args
         log.info("[trace] {} args={}", joinPoint.signature, args)
-        print(joinPoint)
 
         for (arg in args) {
             if (arg is BindingResult) {

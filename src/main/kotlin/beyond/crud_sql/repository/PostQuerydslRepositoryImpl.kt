@@ -3,8 +3,8 @@ package beyond.crud_sql.repository
 import beyond.crud_sql.domain.QPost.post
 import beyond.crud_sql.domain.QUser.user
 import beyond.crud_sql.dto.condition.PostSearchCondition
-import beyond.crud_sql.dto.show.PostShowDto
-import beyond.crud_sql.dto.show.QPostShowDto
+import beyond.crud_sql.dto.show.QSearchPostShowDto
+import beyond.crud_sql.dto.show.SearchPostShowDto
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.data.domain.Page
@@ -13,23 +13,23 @@ import org.springframework.data.support.PageableExecutionUtils
 import org.springframework.stereotype.Repository
 
 @Repository
-class PostRepositoryCustomImpl(
+class PostQuerydslRepositoryImpl(
     private val queryFactory: JPAQueryFactory,
-) : PostRepositoryCustom {
+) : PostQuerydslRepository {
 
-    override fun findPostListWithCondition(condition: PostSearchCondition, pageable: Pageable): Page<PostShowDto> {
-        val content = getPostListShowDto(condition, pageable)
+    override fun findPostAllWithCondition(condition: PostSearchCondition, pageable: Pageable): Page<SearchPostShowDto> {
+        val content = getPostShowDtoAll(condition, pageable)
         val count = getCountQuery(condition)
 
         return PageableExecutionUtils.getPage(content, pageable) { count.fetchOne()!! }
     }
 
-    private fun getPostListShowDto(
+    private fun getPostShowDtoAll(
         condition: PostSearchCondition,
         pageable: Pageable,
-    ): MutableList<PostShowDto> {
+    ): MutableList<SearchPostShowDto> {
         return queryFactory
-            .select(QPostShowDto(post))
+            .select(QSearchPostShowDto(post))
             .distinct()
             .from(post)
             .leftJoin(post.user, user).fetchJoin()
