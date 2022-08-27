@@ -340,7 +340,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun getUserPosts_200() {
+    fun getUserWithPostAll_200() {
         // given
         val bdd = userService.getUserAndToken("bdd@ns.com", "Bdd").results
         val result = postRepository.findPostAllByUserId(bdd.userId, pageRequest)
@@ -349,7 +349,7 @@ class UserControllerTest @Autowired constructor(
         // when + then
         mockMvc.get("/users/${bdd.userId}/posts")
             .andExpect {
-                status().isOk
+                status { isOk() }
                 content {
                     contentType(MediaType.APPLICATION_JSON)
                     json(
@@ -405,14 +405,14 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun getUserPosts_200_empty() {
+    fun getUserWithPostAll_200_empty() {
         val uuid = UUID.randomUUID()
         val result = postRepository.findPostAllByUserId(uuid, pageRequest)
 
         // when + then
         mockMvc.get("/users/${uuid}/posts")
             .andExpect {
-                status().isOk
+                status { isOk() }
                 content {
                     contentType(MediaType.APPLICATION_JSON)
                     json(
@@ -440,6 +440,39 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
+    fun getUserWithPostAll_400() {
+        val result = postRepository.findPostAllByUserId(user1.id!!, pageRequest)
+
+        // when + then
+        mockMvc.get("/users/${user1.id}/posts?page=-1&size=0")
+            .andExpect {
+                status { isBadRequest() }
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "error": "Invalid Request",
+                            "statusCode": 400,
+                            "message": "유효성 검사 에러입니다.",
+                            "validation": {
+                                "size": [
+                                    "1 이상이어야 합니다."
+                                ],
+                                "page": [
+                                    "0 이상이어야 합니다."
+                                ]
+                            },
+                            "cause": null
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }.andDo { print() }
+    }
+
+    @Test
     fun searchUserAll_200() {
         // given
         val bdd = userService.getUserAndToken("bdd@ns.com", "Bdd").results
@@ -453,7 +486,7 @@ class UserControllerTest @Autowired constructor(
         // when + then
         mockMvc.get("/users/search?email=.com&nickname=비&page=0&size=2")
             .andExpect {
-                status().isOk
+                status { isOk() }
                 content {
                     contentType(MediaType.APPLICATION_JSON)
                     json(
@@ -541,7 +574,7 @@ class UserControllerTest @Autowired constructor(
                                 "isNext": false
                             },
                             "statusCode": 200,
-                            "message": "ok"
+                            "message": "회원 리스트 조건 검색이 완료되었습니다."
                         }
                         """.trimIndent()
                     )
@@ -554,7 +587,7 @@ class UserControllerTest @Autowired constructor(
         // when + then
         mockMvc.get("/users/search?email=.com&nickname=없는유&page=0&size=10")
             .andExpect {
-                status().isOk
+                status { isOk() }
                 content {
                     contentType(MediaType.APPLICATION_JSON)
                     json(
@@ -572,7 +605,7 @@ class UserControllerTest @Autowired constructor(
                                 "isNext": false
                             },
                             "statusCode": 200,
-                            "message": "ok"
+                            "message": "회원 리스트 조건 검색이 완료되었습니다."
                         }    
                         """.trimIndent()
                     )
@@ -580,5 +613,36 @@ class UserControllerTest @Autowired constructor(
             }.andDo { print() }
     }
 
+
+    @Test
+    fun searchUserAll_400() {
+        // when + then
+        mockMvc.get("/users/search?page=-1&size=0")
+            .andExpect {
+                status { isBadRequest() }
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "error": "Invalid Request",
+                            "statusCode": 400,
+                            "message": "유효성 검사 에러입니다.",
+                            "validation": {
+                                "size": [
+                                    "1 이상이어야 합니다."
+                                ],
+                                "page": [
+                                    "0 이상이어야 합니다."
+                                ]
+                            },
+                            "cause": null
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }.andDo { print() }
+    }
 
 }

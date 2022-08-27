@@ -14,7 +14,21 @@ class InitData(private val initService: InitService) {
 
     @PostConstruct
     fun init() {
-        initService.dbInit1()
+        initService.dbInit2013()
+        sleep(1000)
+        initService.dbInit2015()
+        sleep(1000)
+        initService.dbInit2016()
+        sleep(1000)
+        initService.dbInit2017()
+        sleep(1000)
+        initService.dbInit2019()
+        sleep(1000)
+        initService.dbInit2020()
+        sleep(1000)
+        initService.dbInit2021()
+        sleep(1000)
+        initService.dbInit2022()
     }
 
     companion object {
@@ -47,48 +61,49 @@ class InitData(private val initService: InitService) {
             private val chovy2021: Post = Post("2021 월즈 8강 with 한화", "Hanhwa - 모건(두두), 윌러, 쵸비, 데프트, 비스타 8강!", chovy)
             private val chovy2022: Post = Post("2022 월즈 도전 with 젠지", "GenG - 도란, 피넛, 쵸비, 룰러, 리헨즈 도전!", chovy)
 
-            fun dbInit1() {
-                // 유저 등록
+            fun dbInit2013() {
                 em.persist(faker)
-                em.persist(bdd)
-                em.persist(showmaker)
-                em.persist(chovy)
-
-                // 포스트 등록
                 em.persist(faker2013)
-                sleep(10)
+            }
+
+            fun dbInit2015() {
                 em.persist(faker2015)
-                sleep(10)
+            }
+
+            fun dbInit2016() {
+                em.persist(bdd)
                 em.persist(faker2016)
-                sleep(10)
+            }
+
+            fun dbInit2017() {
+                em.persist(showmaker)
                 em.persist(bdd2017)
-                sleep(10)
                 em.persist(faker2017)
-                sleep(10)
+            }
+
+            fun dbInit2019() {
+                em.persist(chovy)
                 em.persist(chovy2019)
-                sleep(10)
                 em.persist(showmaker2019)
-                sleep(10)
                 em.persist(faker2019)
-                sleep(10)
+            }
+
+            fun dbInit2020() {
                 em.persist(bdd2020)
-                sleep(10)
                 em.persist(chovy2020)
-                sleep(10)
                 em.persist(showmaker2020)
-                sleep(10)
+            }
+
+            fun dbInit2021() {
                 em.persist(chovy2021)
-                sleep(10)
                 em.persist(bdd2021)
-                sleep(10)
                 em.persist(faker2021)
-                sleep(10)
                 em.persist(showmaker2021)
-                sleep(10)
+            }
+
+            fun dbInit2022() {
                 em.persist(showmaker2022)
-                sleep(10)
                 em.persist(faker2022)
-                sleep(10)
                 em.persist(chovy2022)
             }
         }

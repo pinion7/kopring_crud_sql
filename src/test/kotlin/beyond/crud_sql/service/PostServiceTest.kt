@@ -3,16 +3,21 @@ package beyond.crud_sql.service
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.domain.Post
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.condition.PostSearchCondition
 import beyond.crud_sql.dto.request.UpdatePostRequestDto
+import beyond.crud_sql.repository.UserRepository
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 import javax.persistence.EntityManager
+import javax.validation.ConstraintViolationException
 
 
 @SpringBootTest
@@ -20,6 +25,7 @@ import javax.persistence.EntityManager
 class PostServiceTest @Autowired constructor(
     private val postService: PostService,
     private val em: EntityManager,
+    private val userRepository: UserRepository
 ) {
 
     lateinit var user1: User
@@ -113,4 +119,119 @@ class PostServiceTest @Autowired constructor(
             postService.getPost(post1.id!!)
         }.isInstanceOf(NotFoundException::class.java).hasMessageContaining("게시글을 찾을 수 없습니다.")
     }
+
+    @Test
+    fun getUserWithPostAll_200() {
+        // given
+        val faker = userRepository.findByEmailAndQuit("faker@t1.com", false)[0]
+        val result = postService.getUserWithPostAll(faker.id!!, PageRequest.of(0, 2))
+        val user = result.results
+
+        // when + then
+        assertThat(user.posts.size).isEqualTo(2)
+        assertThat(user.posts[0].userId).isEqualTo(faker.id)
+        assertThat(user.posts[0].writer).isEqualTo(faker.nickname)
+        assertThat(user.posts[1].userId).isEqualTo(faker.id)
+        assertThat(user.posts[1].writer).isEqualTo(faker.nickname)
+        assertThat(user.totalPages).isEqualTo(4)
+        assertThat(user.totalElements).isEqualTo(7)
+        assertThat(user.numberOfElements).isEqualTo(2)
+        assertThat(user.pageNumber).isEqualTo(0)
+        assertThat(user.pageSize).isEqualTo(2)
+        assertThat(user.isFirst).isTrue
+        assertThat(user.isNext).isTrue
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("회원 게시글 조회가 완료되었습니다.")
+    }
+
+    @Test
+    fun getUserWithPostAll_200_empty() {
+        // given
+        val result = postService.getUserWithPostAll(
+            UUID.randomUUID(), PageRequest.of(0, 3)
+        )
+        val user = result.results
+
+        // when + then
+        assertThat(user.posts.size).isEqualTo(0)
+        assertThat(user.totalPages).isEqualTo(0)
+        assertThat(user.totalElements).isEqualTo(0)
+        assertThat(user.numberOfElements).isEqualTo(0)
+        assertThat(user.pageNumber).isEqualTo(0)
+        assertThat(user.pageSize).isEqualTo(3)
+        assertThat(user.isFirst).isTrue
+        assertThat(user.isNext).isFalse
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("회원 게시글 조회가 완료되었습니다.")
+    }
+
+
+    @Test
+    fun getPostAll_200() {
+        // given
+        val pageRequest = PageRequest.of(0, 3)
+        val result = postService.getPostAll(pageRequest)
+        val getPosts = result.results
+
+        // when + then
+        assertThat(getPosts.posts.size).isEqualTo(3)
+        assertThat(getPosts.totalPages).isEqualTo(7)
+        assertThat(getPosts.totalElements).isEqualTo(19)
+        assertThat(getPosts.numberOfElements).isEqualTo(3)
+        assertThat(getPosts.pageNumber).isEqualTo(0)
+        assertThat(getPosts.pageSize).isEqualTo(3)
+        assertThat(getPosts.isFirst).isTrue
+        assertThat(getPosts.isNext).isTrue
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("게시글 리스트 조회가 완료되었습니다.")
+    }
+
+    @Test
+    fun searchPostAll_200() {
+        // given
+        val condition = PostSearchCondition("이커", "티원", " 우승")
+        val pageRequest = PageRequest.of(0, 2)
+        val result = postService.searchPostAll(condition, pageRequest)
+        val searchPost = result.results
+
+        // when + then
+        assertThat(searchPost.posts.size).isEqualTo(2)
+        assertThat(searchPost.posts[0].writer).contains(condition.writer)
+        assertThat(searchPost.posts[0].title).contains(condition.title)
+        assertThat(searchPost.posts[0].content).contains(condition.content)
+        assertThat(searchPost.posts[1].writer).contains(condition.writer)
+        assertThat(searchPost.posts[1].title).contains(condition.title)
+        assertThat(searchPost.posts[1].content).contains(condition.content)
+        assertThat(searchPost.totalPages).isEqualTo(2)
+        assertThat(searchPost.totalElements).isEqualTo(3)
+        assertThat(searchPost.numberOfElements).isEqualTo(2)
+        assertThat(searchPost.pageNumber).isEqualTo(0)
+        assertThat(searchPost.pageSize).isEqualTo(2)
+        assertThat(searchPost.isFirst).isTrue
+        assertThat(searchPost.isNext).isTrue
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("게시글 리스트 조건 검색이 완료되었습니다.")
+    }
+
+    @Test
+    fun searchPostAll_200_empty() {
+        // given
+        val condition = PostSearchCondition("없는유저", "티원", " 우승")
+        val pageRequest = PageRequest.of(0, 2)
+        val result = postService.searchPostAll(condition, pageRequest)
+        val searchPost = result.results
+
+        // when + then
+        assertThat(searchPost.posts.size).isEqualTo(0)
+        assertThat(searchPost.totalPages).isEqualTo(0)
+        assertThat(searchPost.totalElements).isEqualTo(0)
+        assertThat(searchPost.numberOfElements).isEqualTo(0)
+        assertThat(searchPost.pageNumber).isEqualTo(0)
+        assertThat(searchPost.pageSize).isEqualTo(2)
+        assertThat(searchPost.isFirst).isTrue
+        assertThat(searchPost.isNext).isFalse
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("게시글 리스트 조건 검색이 완료되었습니다.")
+    }
+
 }

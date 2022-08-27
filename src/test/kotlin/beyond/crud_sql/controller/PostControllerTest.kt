@@ -3,6 +3,7 @@ package beyond.crud_sql.controller
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.Post
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.condition.PostSearchCondition
 import beyond.crud_sql.dto.request.CreatePostRequestDto
 import beyond.crud_sql.dto.request.UpdatePostRequestDto
 import beyond.crud_sql.repository.PostRepository
@@ -317,7 +318,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.get("/posts?page=0&size=3")
             .andExpect {
-                status().isOk
+                status { isOk() }
                 content {
                     contentType(MediaType.APPLICATION_JSON)
                     json(
@@ -378,7 +379,7 @@ class PostControllerTest @Autowired constructor(
         // when + then
         mockMvc.get("/posts?page=-1&size=0")
             .andExpect {
-                status().isBadRequest
+                status { isBadRequest() }
                 content {
                     contentType(MediaType.APPLICATION_JSON)
                     json(
@@ -402,7 +403,125 @@ class PostControllerTest @Autowired constructor(
                     )
                 }
             }.andDo { print() }
-
     }
+
+    @Test
+    fun searchPostAll_200() {
+        // given
+        val result = postService.searchPostAll(
+            PostSearchCondition("이커", "티원", " 우승"), PageRequest.of(0, 2)
+        ).results
+        val searchPost = result.posts
+
+        // when + then
+        mockMvc.get("/posts/search?writer=이커&title=티원&content= 우승&pae=0&size=2")
+            .andExpect {
+                status { isOk() }
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "results": {
+                                "posts": [
+                                    {
+                                        "postId": "${searchPost[0].postId}",
+                                        "userId": "${searchPost[0].userId}",
+                                        "writer": "${searchPost[0].writer}",
+                                        "title": "${searchPost[0].title}",
+                                        "content": "${searchPost[0].content}",
+                                        "createdDate": "${searchPost[0].createdDate}",
+                                        "lastModifiedDate": "${searchPost[0].lastModifiedDate}"
+                                    },
+                                    {
+                                        "postId": "${searchPost[1].postId}",
+                                        "userId": "${searchPost[1].userId}",
+                                        "writer": "${searchPost[1].writer}",
+                                        "title": "${searchPost[1].title}",
+                                        "content": "${searchPost[1].content}",
+                                        "createdDate": "${searchPost[1].createdDate}",
+                                        "lastModifiedDate": "${searchPost[1].lastModifiedDate}"
+                                    }
+                                ],
+                                "totalPages": ${result.totalPages},
+                                "totalElements": ${result.totalElements},
+                                "numberOfElements": ${result.numberOfElements},
+                                "pageNumber": ${result.pageNumber},
+                                "pageSize": ${result.pageSize},
+                                "isFirst": ${result.isFirst},
+                                "isNext": ${result.isNext}
+                            },
+                            "statusCode": 200,
+                            "message": "게시글 리스트 조건 검색이 완료되었습니다."
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }
+    }
+
+    @Test
+    fun searchPostAll_200_empty() {
+        // when + then
+        mockMvc.get("/posts/search?writer=없는유저")
+            .andExpect {
+                status { isOk() }
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "results": {
+                                "posts": [],
+                                "totalPages": 0,
+                                "totalElements": 0,
+                                "numberOfElements": 0,
+                                "pageNumber": 0,
+                                "pageSize": 10,
+                                "isFirst": true,
+                                "isNext": false
+                            },
+                            "statusCode": 200,
+                            "message": "게시글 리스트 조건 검색이 완료되었습니다."
+                        }   
+                        """.trimIndent()
+                    )
+                }
+            }.andDo { print() }
+    }
+
+    @Test
+    fun searchPostAll_400() {
+        // when + then
+        mockMvc.get("/posts/search?page=-1&size=0")
+            .andExpect {
+                status { isBadRequest() }
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(
+                        // language=json
+                        """
+                        {
+                            "error": "Invalid Request",
+                            "statusCode": 400,
+                            "message": "유효성 검사 에러입니다.",
+                            "validation": {
+                                "size": [
+                                    "1 이상이어야 합니다."
+                                ],
+                                "page": [
+                                    "0 이상이어야 합니다."
+                                ]
+                            },
+                            "cause": null
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }.andDo { print() }
+    }
+
 
 }

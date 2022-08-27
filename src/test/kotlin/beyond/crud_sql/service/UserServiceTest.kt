@@ -3,6 +3,8 @@ package beyond.crud_sql.service
 import beyond.crud_sql.common.exception.custom.NotFoundException
 import beyond.crud_sql.common.provider.JwtTokenProvider
 import beyond.crud_sql.domain.User
+import beyond.crud_sql.dto.condition.UserSearchCondition
+import beyond.crud_sql.repository.UserRepository
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import javax.persistence.EntityManager
@@ -18,6 +21,7 @@ import javax.persistence.EntityManager
 @Transactional
 class UserServiceTest @Autowired constructor(
     val userService: UserService,
+    val userRepository: UserRepository,
     val em: EntityManager,
     val jwtTokenProvider: JwtTokenProvider,
 ) {
@@ -120,4 +124,58 @@ class UserServiceTest @Autowired constructor(
         assertThat(result.statusCode).isEqualTo(200)
         assertThat(result.message).isEqualTo("회원 탈퇴가 완료되었습니다.")
     }
+
+    @Test
+    fun searchUserAll_200() {
+        // given
+        val bdd = userRepository.findByEmailAndQuit("bdd@ns.com", false)[0]
+        val chovy = userRepository.findByEmailAndQuit("chovy@geng.com", false)[0]
+
+        val request = UserSearchCondition(".com", "비")
+        val pageRequest = PageRequest.of(0, 10)
+        val result = userService.searchUserAll(request, pageRequest)
+        val users = result.results
+
+        // when + then
+        assertThat(users.users[0].userId).isEqualTo(chovy.id)
+        assertThat(users.users[0].email).isEqualTo(chovy.email)
+        assertThat(users.users[0].nickname).isEqualTo(chovy.nickname)
+        assertThat(users.users[0].posts.size).isEqualTo(chovy.posts.size)
+        assertThat(users.users[1].userId).isEqualTo(bdd.id)
+        assertThat(users.users[1].email).isEqualTo(bdd.email)
+        assertThat(users.users[1].nickname).isEqualTo(bdd.nickname)
+        assertThat(users.users[1].posts.size).isEqualTo(bdd.posts.size)
+        assertThat(users.totalPages).isEqualTo(1)
+        assertThat(users.totalElements).isEqualTo(2)
+        assertThat(users.numberOfElements).isEqualTo(2)
+        assertThat(users.pageNumber).isEqualTo(0)
+        assertThat(users.pageSize).isEqualTo(10)
+        assertThat(users.isFirst).isTrue
+        assertThat(users.isNext).isFalse
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("회원 리스트 조건 검색이 완료되었습니다.")
+    }
+
+    @Test
+    fun searchUserAll_200_empty() {
+        // given
+        val request = UserSearchCondition(nickname = "없는유저")
+        val pageRequest = PageRequest.of(0, 10)
+        val result = userService.searchUserAll(request, pageRequest)
+        val users = result.results
+
+        // when + then
+        assertThat(users.users.size).isEqualTo(0)
+        assertThat(users.totalPages).isEqualTo(0)
+        assertThat(users.totalElements).isEqualTo(0)
+        assertThat(users.numberOfElements).isEqualTo(0)
+        assertThat(users.pageNumber).isEqualTo(0)
+        assertThat(users.pageSize).isEqualTo(10)
+        assertThat(users.isFirst).isTrue
+        assertThat(users.isNext).isFalse
+        assertThat(result.statusCode).isEqualTo(200)
+        assertThat(result.message).isEqualTo("회원 리스트 조건 검색이 완료되었습니다.")
+    }
+
+
 }

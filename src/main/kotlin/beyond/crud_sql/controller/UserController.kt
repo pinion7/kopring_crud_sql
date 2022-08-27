@@ -134,9 +134,11 @@ class UserController(
     @ApiResponse(responseCode = "500", content = [Content(schema = Schema(implementation = ErrorResult::class))])
     fun searchUserAll(
         condition: UserSearchCondition,
-        pageable: Pageable,
+        @RequestParam("page") @Min(0, message = "0 이상이어야 합니다.") page: Int? = null,
+        @RequestParam("size") @Min(1, message = "1 이상이어야 합니다.") size: Int? = null,
     ): ResponseEntity<ResponseDto<SearchUserAllResultDto>> {
-        val results = userService.searchUserAll(condition, pageable)
+        val pageRequest = PageRequest.of(page ?: 0, size ?: 10)
+        val results = userService.searchUserAll(condition, pageRequest)
         return ResponseEntity.status(200).body(results)
     }
 }

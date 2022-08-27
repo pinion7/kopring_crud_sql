@@ -83,7 +83,7 @@ class PostService(
 
     }
 
-    fun getPostAll(pageRequest: PageRequest): ResponseDto<GetPostAllResultDto>? {
+    fun getPostAll(pageRequest: PageRequest): ResponseDto<GetPostAllResultDto> {
         val pageablePostList = postRepository.findPostAll(pageRequest)
 
         return ResponseDto(
@@ -120,8 +120,4 @@ class PostService(
         }
         return findPost[0]
     }
-
-
-
-
 }

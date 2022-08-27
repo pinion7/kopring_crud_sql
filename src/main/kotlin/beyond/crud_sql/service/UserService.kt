@@ -93,6 +93,15 @@ class UserService(
         )
     }
 
+    fun searchUserAll(condition: UserSearchCondition, pageable: Pageable): ResponseDto<SearchUserAllResultDto> {
+        val result = userRepository.findUserAllWithCondition(condition, pageable)
+        return ResponseDto(
+            SearchUserAllResultDto(result),
+            200,
+            "회원 리스트 조건 검색이 완료되었습니다."
+        )
+    }
+
     private fun checkUserPassword(originPassword: String, requestPassword: String) {
         if (originPassword != requestPassword) {
             throw NotFoundException("비밀번호가 일치하지 않습니다.")
@@ -114,14 +123,4 @@ class UserService(
         }
         return result[0]
     }
-
-    fun searchUserAll(condition: UserSearchCondition, pageable: Pageable): ResponseDto<SearchUserAllResultDto> {
-        val result = userRepository.findUserAllWithCondition(condition, pageable)
-        return ResponseDto(
-            SearchUserAllResultDto(result),
-            200,
-            "ok"
-        )
-    }
-
 }
